@@ -1,0 +1,3300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3:00 AM — Insomnia</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Serif+Display:ital@0;1&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --black: #000000;
+            --deep: #050508;
+            --red: #ff1a1a;
+            --red-dim: #7a0000;
+            --red-glow: rgba(255, 26, 26, 0.15);
+            --red-mid: #c0392b;
+            --white: #f0e8e8;
+            --grey: #2a2a2a;
+            --fog: rgba(255, 26, 26, 0.04);
+        }
+
+        *, *::before, *::after {
+            margin: 0; padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            scroll-snap-type: y mandatory;
+        }
+
+        body {
+            background: var(--deep);
+            color: var(--white);
+            font-family: 'Space Mono', monospace;
+            overflow-x: hidden;
+            cursor: none;
+        }
+
+        /* CUSTOM CURSOR */
+        .cursor {
+            position: fixed;
+            width: 12px; height: 12px;
+            background: var(--red);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            transform: translate(-50%, -50%);
+            transition: transform 0.1s, width 0.2s, height 0.2s, opacity 0.2s;
+            box-shadow: 0 0 10px var(--red), 0 0 20px var(--red);
+            mix-blend-mode: screen;
+        }
+        .cursor-trail {
+            position: fixed;
+            width: 30px; height: 30px;
+            border: 1px solid rgba(255,26,26,0.4);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9998;
+            transform: translate(-50%, -50%);
+            transition: left 0.12s ease, top 0.12s ease;
+        }
+
+        /* GRAIN */
+        .grain {
+            position: fixed;
+            inset: -200%;
+            width: 400%; height: 400%;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+            opacity: 0.035;
+            pointer-events: none;
+            z-index: 1000;
+            animation: grain-move 0.5s steps(2) infinite;
+        }
+        @keyframes grain-move {
+            0%   { transform: translate(0,0); }
+            25%  { transform: translate(-2%,-3%); }
+            50%  { transform: translate(3%,2%); }
+            75%  { transform: translate(-1%,4%); }
+            100% { transform: translate(2%,-1%); }
+        }
+
+        /* VIGNETTE */
+        .vignette {
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.97) 100%);
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        /* SCANLINES */
+        .scanlines {
+            position: fixed;
+            inset: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0,0,0,0.05) 2px,
+                rgba(0,0,0,0.05) 4px
+            );
+            pointer-events: none;
+            z-index: 998;
+        }
+
+        /* SECTIONS */
+        section {
+            min-height: 100vh;
+            scroll-snap-align: start;
+            position: relative;
+        }
+
+        /* ===== HERO SECTION ===== */
+        #hero {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Background radial pulse */
+        .hero-bg {
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 60% 50% at 50% 50%, rgba(100,0,0,0.18) 0%, transparent 70%),
+                var(--deep);
+            animation: pulse-bg 4s ease-in-out infinite;
+        }
+        @keyframes pulse-bg {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        /* CLOCK */
+        .clock {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: clamp(5rem, 18vw, 18rem);
+            color: transparent;
+            -webkit-text-stroke: 1px rgba(255,26,26,0.25);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -52%);
+            letter-spacing: -4px;
+            white-space: nowrap;
+            user-select: none;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* EYES */
+        .eyes-wrap {
+            display: flex;
+            gap: clamp(40px, 8vw, 100px);
+            z-index: 10;
+            position: relative;
+            margin-bottom: 2rem;
+        }
+
+        .eye {
+            width: clamp(120px, 16vw, 200px);
+            height: clamp(55px, 7vw, 90px);
+            background: #000;
+            border: 2px solid var(--red);
+            border-radius: 50%;
+            position: relative;
+            box-shadow:
+                inset 0 0 40px rgba(80,0,0,0.8),
+                0 0 20px rgba(255,0,0,0.3),
+                0 0 60px rgba(255,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .eyelid-top, .eyelid-bot {
+            position: absolute;
+            left: 0; width: 100%;
+            height: 50%;
+            background: var(--deep);
+            z-index: 5;
+            transition: height 3s cubic-bezier(0.4, 0, 0.6, 1);
+        }
+        .eyelid-top { top: 0; border-bottom: 1px solid var(--red-dim); }
+        .eyelid-bot { bottom: 0; border-top: 1px solid var(--red-dim); }
+
+        /* Iris */
+        .iris {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: clamp(28px, 3.5vw, 48px);
+            height: clamp(28px, 3.5vw, 48px);
+            border-radius: 50%;
+            background: radial-gradient(circle at 40% 40%, #660000, #000);
+            border: 2px solid var(--red);
+            box-shadow: 0 0 15px var(--red), 0 0 30px rgba(255,0,0,0.5);
+            z-index: 3;
+        }
+
+        .pupil {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 40%;
+            height: 40%;
+            background: #000;
+            border-radius: 50%;
+        }
+
+        /* bloodshot veins */
+        .eye::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='90'%3E%3Cpath d='M20,45 Q60,20 100,45 Q140,70 180,45' stroke='rgba(180,0,0,0.3)' stroke-width='1' fill='none'/%3E%3Cpath d='M10,55 Q50,30 90,55 Q130,75 170,55' stroke='rgba(180,0,0,0.2)' stroke-width='0.8' fill='none'/%3E%3Cpath d='M30,35 Q70,55 110,35 Q150,15 190,35' stroke='rgba(180,0,0,0.2)' stroke-width='0.7' fill='none'/%3E%3C/svg%3E") center/cover;
+            opacity: 0.6;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        /* HERO TEXT */
+        .hero-text {
+            text-align: center;
+            z-index: 10;
+            position: relative;
+        }
+
+        .hero-eyebrow {
+            font-family: 'Space Mono', monospace;
+            font-size: clamp(0.6rem, 1.2vw, 0.85rem);
+            letter-spacing: 0.4em;
+            color: var(--red);
+            opacity: 0.7;
+            text-transform: uppercase;
+            margin-bottom: 0.8rem;
+            animation: fadeUp 1.5s ease forwards;
+            animation-delay: 0.5s;
+            opacity: 0;
+        }
+
+        .hero-title {
+            font-family: 'DM Serif Display', serif;
+            font-style: italic;
+            font-size: clamp(2.5rem, 7vw, 7rem);
+            color: var(--white);
+            line-height: 0.9;
+            letter-spacing: -2px;
+            animation: fadeUp 1.5s ease forwards;
+            animation-delay: 0.8s;
+            opacity: 0;
+        }
+        .hero-title span {
+            color: var(--red);
+            -webkit-text-stroke: 0px;
+        }
+
+        .hero-sub {
+            font-family: 'Space Mono', monospace;
+            font-size: clamp(0.65rem, 1.1vw, 0.85rem);
+            color: rgba(240, 232, 232, 0.35);
+            margin-top: 1.2rem;
+            letter-spacing: 0.15em;
+            animation: fadeUp 1.5s ease forwards;
+            animation-delay: 1.1s;
+            opacity: 0;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* FLOATING THOUGHTS */
+        .thought {
+            position: fixed;
+            font-family: 'Space Mono', monospace;
+            font-size: clamp(0.55rem, 1vw, 0.75rem);
+            color: rgba(255, 26, 26, 0.55);
+            text-transform: lowercase;
+            pointer-events: none;
+            z-index: 990;
+            opacity: 0;
+            letter-spacing: 0.05em;
+            text-shadow: 0 0 12px rgba(255,0,0,0.6);
+            transition: opacity 1.2s ease, filter 1.2s ease, transform 4s ease;
+            filter: blur(3px);
+        }
+
+        /* SCROLL INDICATOR */
+        .scroll-hint {
+            position: absolute;
+            bottom: 2.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            opacity: 0.4;
+            z-index: 10;
+            animation: fadeUp 2s ease forwards;
+            animation-delay: 2s;
+            opacity: 0;
+        }
+        .scroll-hint span {
+            font-size: 0.55rem;
+            letter-spacing: 0.35em;
+            color: var(--red);
+            text-transform: uppercase;
+        }
+        .scroll-line {
+            width: 1px;
+            height: 50px;
+            background: linear-gradient(to bottom, var(--red), transparent);
+            animation: scroll-pulse 2s ease-in-out infinite;
+        }
+        @keyframes scroll-pulse {
+            0%, 100% { transform: scaleY(1); opacity: 0.4; }
+            50%       { transform: scaleY(0.5); opacity: 1; }
+        }
+
+        /* FLASH */
+        .flash {
+            position: fixed;
+            inset: 0;
+            background: white;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 997;
+            animation: flash-anim 6s infinite;
+        }
+        @keyframes flash-anim {
+            0%,97%,100% { opacity: 0; }
+            98.5% { opacity: 0.06; }
+        }
+
+        /* NAV */
+        nav {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 500;
+            padding: 1.5rem 3rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            mix-blend-mode: normal;
+        }
+        nav::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.6), transparent);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .nav-logo {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.4rem;
+            letter-spacing: 0.2em;
+            color: var(--red);
+            text-shadow: 0 0 15px rgba(255,0,0,0.4);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2.5rem;
+            list-style: none;
+        }
+        .nav-links a {
+            font-size: 0.6rem;
+            letter-spacing: 0.3em;
+            color: rgba(240,232,232,0.4);
+            text-decoration: none;
+            text-transform: uppercase;
+            transition: color 0.3s;
+            position: relative;
+        }
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -4px; left: 0;
+            width: 0; height: 1px;
+            background: var(--red);
+            transition: width 0.3s;
+        }
+        .nav-links a:hover {
+            color: var(--red);
+        }
+        .nav-links a:hover::after { width: 100%; }
+
+        /* ===== ABOUT / WHAT IS SECTION ===== */
+        #about {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            align-items: center;
+            padding: 6rem 8vw;
+            gap: 4rem;
+            overflow: hidden;
+        }
+
+        .about-left {
+            position: relative;
+        }
+
+        .section-tag {
+            font-size: 0.6rem;
+            letter-spacing: 0.45em;
+            color: var(--red);
+            text-transform: uppercase;
+            opacity: 0.7;
+            margin-bottom: 1.5rem;
+            display: block;
+        }
+
+        .section-title {
+            font-family: 'DM Serif Display', serif;
+            font-style: italic;
+            font-size: clamp(2.5rem, 5vw, 5.5rem);
+            line-height: 0.95;
+            color: var(--white);
+            margin-bottom: 2rem;
+        }
+        .section-title .red { color: var(--red); }
+
+        .about-body {
+            font-size: 0.8rem;
+            line-height: 2;
+            color: rgba(240,232,232,0.5);
+            max-width: 440px;
+        }
+
+        .stat-row {
+            display: flex;
+            gap: 3rem;
+            margin-top: 3rem;
+        }
+        .stat-item {}
+        .stat-num {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 3rem;
+            color: var(--red);
+            display: block;
+            line-height: 1;
+            text-shadow: 0 0 20px rgba(255,0,0,0.4);
+        }
+        .stat-label {
+            font-size: 0.55rem;
+            letter-spacing: 0.3em;
+            color: rgba(240,232,232,0.35);
+            text-transform: uppercase;
+            margin-top: 0.3rem;
+            display: block;
+        }
+
+        /* Right side — big decorative text */
+        .about-right {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .about-big {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: clamp(6rem, 16vw, 18rem);
+            color: transparent;
+            -webkit-text-stroke: 1px rgba(255,26,26,0.1);
+            line-height: 0.85;
+            text-align: right;
+            user-select: none;
+            position: relative;
+        }
+        .about-big::before {
+            content: attr(data-text);
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255,26,26,0.08), transparent 60%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            -webkit-text-stroke: 0px;
+        }
+
+        /* ===== SYMPTOMS ===== */
+        #symptoms {
+            padding: 6rem 8vw;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .sym-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 4rem;
+        }
+
+        .sym-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5px;
+        }
+
+        .sym-card {
+            background: rgba(10,0,0,0.6);
+            border: 1px solid rgba(255,26,26,0.08);
+            padding: 2.5rem;
+            position: relative;
+            overflow: hidden;
+            cursor: default;
+            transition: border-color 0.4s;
+        }
+        .sym-card:hover {
+            border-color: rgba(255,26,26,0.5);
+        }
+        .sym-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 0% 0%, rgba(255,26,26,0.06), transparent 60%);
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+        .sym-card:hover::before { opacity: 1; }
+
+        .sym-num {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 4rem;
+            color: rgba(255,26,26,0.06);
+            position: absolute;
+            top: 1rem;
+            right: 1.5rem;
+            line-height: 1;
+            pointer-events: none;
+        }
+
+        .sym-icon {
+            font-size: 1.5rem;
+            margin-bottom: 1.2rem;
+            display: block;
+            filter: grayscale(0.4);
+        }
+
+        .sym-name {
+            font-family: 'DM Serif Display', serif;
+            font-size: 1.3rem;
+            color: var(--white);
+            margin-bottom: 0.8rem;
+            font-style: italic;
+        }
+
+        .sym-desc {
+            font-size: 0.65rem;
+            line-height: 1.9;
+            color: rgba(240,232,232,0.35);
+        }
+
+        .sym-line {
+            width: 25px;
+            height: 1px;
+            background: var(--red);
+            margin-top: 1.5rem;
+            transition: width 0.4s;
+        }
+        .sym-card:hover .sym-line { width: 50px; }
+
+        /* ===== TIMELINE ===== */
+        #timeline {
+            padding: 6rem 8vw;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .timeline-track {
+            position: relative;
+            margin-top: 3rem;
+        }
+
+        .tl-line {
+            position: absolute;
+            top: 18px;
+            left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(to right, transparent, rgba(255,26,26,0.3) 10%, rgba(255,26,26,0.3) 90%, transparent);
+        }
+
+        .tl-items {
+            display: flex;
+            gap: 0;
+            overflow-x: auto;
+            scrollbar-width: none;
+            padding-bottom: 2rem;
+        }
+        .tl-items::-webkit-scrollbar { display: none; }
+
+        .tl-item {
+            flex: 0 0 220px;
+            padding-top: 3rem;
+            padding-right: 2rem;
+            position: relative;
+        }
+
+        .tl-dot {
+            position: absolute;
+            top: 10px; left: 0;
+            width: 16px; height: 16px;
+            border-radius: 50%;
+            border: 2px solid var(--red-dim);
+            background: var(--deep);
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        .tl-item:hover .tl-dot {
+            border-color: var(--red);
+            box-shadow: 0 0 10px rgba(255,0,0,0.5);
+        }
+
+        .tl-time {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.8rem;
+            color: var(--red);
+            opacity: 0.6;
+            line-height: 1;
+            margin-bottom: 0.5rem;
+            transition: opacity 0.3s;
+        }
+        .tl-item:hover .tl-time { opacity: 1; }
+
+        .tl-title {
+            font-family: 'DM Serif Display', serif;
+            font-size: 0.95rem;
+            font-style: italic;
+            color: var(--white);
+            margin-bottom: 0.5rem;
+        }
+
+        .tl-desc {
+            font-size: 0.58rem;
+            line-height: 1.9;
+            color: rgba(240,232,232,0.3);
+        }
+
+        /* ===== TIPS ===== */
+        #tips {
+            padding: 6rem 8vw;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .tips-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1px;
+            margin-top: 3rem;
+            border: 1px solid rgba(255,26,26,0.08);
+        }
+
+        .tip-item {
+            padding: 2.5rem 3rem;
+            border: 1px solid rgba(255,26,26,0.06);
+            display: flex;
+            gap: 1.5rem;
+            align-items: flex-start;
+            transition: background 0.4s;
+            cursor: default;
+        }
+        .tip-item:hover {
+            background: rgba(255,26,26,0.03);
+        }
+
+        .tip-no {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 3rem;
+            color: rgba(255,26,26,0.12);
+            line-height: 1;
+            flex-shrink: 0;
+        }
+
+        .tip-content {}
+        .tip-title {
+            font-family: 'DM Serif Display', serif;
+            font-size: 1.1rem;
+            color: var(--white);
+            font-style: italic;
+            margin-bottom: 0.5rem;
+        }
+        .tip-text {
+            font-size: 0.62rem;
+            line-height: 1.9;
+            color: rgba(240,232,232,0.35);
+        }
+
+        /* ===== FOOTER ===== */
+        footer {
+            min-height: 50vh;
+            scroll-snap-align: start;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            padding: 4rem;
+            border-top: 1px solid rgba(255,26,26,0.1);
+            overflow: hidden;
+        }
+
+        .footer-clock {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: clamp(4rem, 15vw, 14rem);
+            color: transparent;
+            -webkit-text-stroke: 1px rgba(255,26,26,0.15);
+            position: absolute;
+            bottom: -2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            white-space: nowrap;
+            user-select: none;
+        }
+
+        .footer-quote {
+            font-family: 'DM Serif Display', serif;
+            font-style: italic;
+            font-size: clamp(1rem, 2.5vw, 1.8rem);
+            color: rgba(240,232,232,0.5);
+            text-align: center;
+            max-width: 600px;
+            line-height: 1.4;
+            position: relative;
+            z-index: 2;
+        }
+        .footer-quote em {
+            color: var(--red);
+            font-style: normal;
+        }
+
+        .footer-sub {
+            font-size: 0.55rem;
+            letter-spacing: 0.4em;
+            color: rgba(240,232,232,0.2);
+            text-transform: uppercase;
+            margin-top: 2rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* SCROLL REVEAL */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.9s ease, transform 0.9s ease;
+        }
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* GLITCH */
+        .glitch {
+            position: relative;
+        }
+        .glitch::before, .glitch::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+        }
+        .glitch::before {
+            color: rgba(255,0,0,0.7);
+            clip-path: polygon(0 30%, 100% 30%, 100% 50%, 0 50%);
+            animation: glitch-1 4s infinite;
+        }
+        .glitch::after {
+            color: rgba(0,200,255,0.2);
+            clip-path: polygon(0 60%, 100% 60%, 100% 80%, 0 80%);
+            animation: glitch-2 5s infinite 1s;
+        }
+        @keyframes glitch-1 {
+            0%,95%,100% { transform: translate(0); opacity: 0; }
+            96% { transform: translate(-3px, 1px); opacity: 0.5; }
+            97% { transform: translate(3px, -1px); opacity: 0.5; }
+            98% { transform: translate(0); opacity: 0; }
+        }
+        @keyframes glitch-2 {
+            0%,93%,100% { transform: translate(0); opacity: 0; }
+            94% { transform: translate(3px, 2px); opacity: 0.3; }
+            96% { transform: translate(-2px); opacity: 0.3; }
+            97% { transform: translate(0); opacity: 0; }
+        }
+
+        /* EYE FOLLOW MOUSE */
+        .iris {
+            transition: transform 0.08s ease;
+        }
+
+        /* MOBILE */
+        @media (max-width: 768px) {
+            nav { padding: 1.2rem 1.5rem; }
+            .nav-links { display: none; }
+            #about { grid-template-columns: 1fr; padding: 4rem 6vw; }
+            .about-right { display: none; }
+            .sym-grid { grid-template-columns: 1fr 1fr; }
+            .tips-grid { grid-template-columns: 1fr; }
+            #timeline, #symptoms, #tips { padding: 4rem 6vw; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- OVERLAYS -->
+    <div class="grain"></div>
+    <div class="vignette"></div>
+    <div class="scanlines"></div>
+    <div class="flash"></div>
+    <div class="cursor" id="cursor"></div>
+    <div class="cursor-trail" id="cursorTrail"></div>
+
+    <!-- NAV -->
+    <nav>
+        <div class="nav-logo">3:00 AM</div>
+        <ul class="nav-links">
+            <li><a href="#about">About</a></li>
+            <li><a href="#symptoms">Symptoms</a></li>
+            <li><a href="#timeline">Night</a></li>
+            <li><a href="#tips">Relief</a></li>
+        </ul>
+    </nav>
+
+    <!-- HERO -->
+    <section id="hero">
+        <div class="hero-bg"></div>
+        <div class="clock">3:00</div>
+
+        <div class="eyes-wrap" id="eyesWrap">
+            <div class="eye left" id="eyeL">
+                <div class="eyelid-top" id="lidTopL"></div>
+                <div class="eyelid-bot" id="lidBotL"></div>
+                <div class="iris" id="irisL"><div class="pupil"></div></div>
+            </div>
+            <div class="eye right" id="eyeR">
+                <div class="eyelid-top" id="lidTopR"></div>
+                <div class="eyelid-bot" id="lidBotR"></div>
+                <div class="iris" id="irisR"><div class="pupil"></div></div>
+            </div>
+        </div>
+
+        <div class="hero-text">
+            <p class="hero-eyebrow">A study in wakefulness</p>
+            <h1 class="hero-title glitch" data-text="Insomnia">
+                <span>Ins</span><span class="red">omnia</span>
+            </h1>
+            <p class="hero-sub">when the mind refuses to rest // 3:00 AM // every night</p>
+        </div>
+
+        <div class="scroll-hint">
+            <span>scroll</span>
+            <div class="scroll-line"></div>
+        </div>
+    </section>
+
+    <!-- ABOUT -->
+    <section id="about">
+        <div class="about-left reveal">
+            <span class="section-tag">// 01 — What is it</span>
+            <h2 class="section-title">The mind<br>that <span class="red">won't</span><br>go quiet</h2>
+            <p class="about-body">
+                Insomnia is not just the absence of sleep. It is the presence of everything else — every thought, every fear, every unfinished sentence. The body begs for rest while the mind refuses to surrender.
+            </p>
+            <div class="stat-row">
+                <div class="stat-item">
+                    <span class="stat-num" data-count="30">0</span>
+                    <span class="stat-label">% of adults affected</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-num" data-count="10">0</span>
+                    <span class="stat-label">% have chronic insomnia</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-num" data-count="3">0</span>
+                    <span class="stat-label">AM — the witching hour</span>
+                </div>
+            </div>
+        </div>
+        <div class="about-right reveal">
+            <div class="about-big" data-text="NO&#10;SLEEP">NO<br>SLEEP</div>
+        </div>
+    </section>
+
+    <!-- SYMPTOMS -->
+    <section id="symptoms">
+        <div class="sym-header reveal">
+            <div>
+                <span class="section-tag">// 02 — Symptoms</span>
+                <h2 class="section-title" style="font-size:clamp(2rem,4vw,4rem)">What it<br>feels like</h2>
+            </div>
+            <p style="font-size:0.6rem;color:rgba(240,232,232,0.25);max-width:200px;text-align:right;letter-spacing:0.05em;">hover each card to feel the weight</p>
+        </div>
+        <div class="sym-grid reveal">
+            <div class="sym-card">
+                <span class="sym-num">01</span>
+                <span class="sym-icon">👁️</span>
+                <h3 class="sym-name">Racing Thoughts</h3>
+                <p class="sym-desc">The mind loops through conversations, regrets, and hypotheticals with no off switch. The faster you try to stop it, the faster it runs.</p>
+                <div class="sym-line"></div>
+            </div>
+            <div class="sym-card">
+                <span class="sym-num">02</span>
+                <span class="sym-icon">🔥</span>
+                <h3 class="sym-name">Burning Eyes</h3>
+                <p class="sym-desc">The lids feel heavy but the eyes refuse to close. A dry, stinging heat behind each blink. The screen glows. The room hums.</p>
+                <div class="sym-line"></div>
+            </div>
+            <div class="sym-card">
+                <span class="sym-num">03</span>
+                <span class="sym-icon">💓</span>
+                <h3 class="sym-name">Restless Body</h3>
+                <p class="sym-desc">The legs won't stay still. Every position is wrong. The pillow is too warm, then too cold. A persistent, irrational discomfort.</p>
+                <div class="sym-line"></div>
+            </div>
+            <div class="sym-card">
+                <span class="sym-num">04</span>
+                <span class="sym-icon">🌫️</span>
+                <h3 class="sym-name">Brain Fog</h3>
+                <p class="sym-desc">Morning arrives but clarity doesn't. Words blur. Decisions slow. The world has a thin, gauze-like quality that no coffee can lift.</p>
+                <div class="sym-line"></div>
+            </div>
+            <div class="sym-card">
+                <span class="sym-num">05</span>
+                <span class="sym-icon">👂</span>
+                <h3 class="sym-name">Hypersensitivity</h3>
+                <p class="sym-desc">Sounds become unbearable. The neighbor's footstep. A dripping tap. The faint buzz of electricity in the walls. Everything is too loud.</p>
+                <div class="sym-line"></div>
+            </div>
+            <div class="sym-card">
+                <span class="sym-num">06</span>
+                <span class="sym-icon">⏰</span>
+                <h3 class="sym-name">Clock Watching</h3>
+                <p class="sym-desc">3:00 becomes 3:17 becomes 4:02. Each hour tallied. Each minute a small defeat. The math of how much sleep is left becomes torture.</p>
+                <div class="sym-line"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- TIMELINE -->
+    <section id="timeline">
+        <div class="reveal">
+            <span class="section-tag">// 03 — A night with insomnia</span>
+            <h2 class="section-title" style="font-size:clamp(2rem,4vw,4rem)">Hour by<br><span class="red">hour</span></h2>
+        </div>
+        <div class="timeline-track reveal">
+            <div class="tl-line"></div>
+            <div class="tl-items">
+                <div class="tl-item">
+                    <div class="tl-dot"></div>
+                    <div class="tl-time">10 PM</div>
+                    <div class="tl-title">Lie Down</div>
+                    <p class="tl-desc">The ritual begins. Phone down. Lights off. Eyes shut. The mind, however, has other plans.</p>
+                </div>
+                <div class="tl-item">
+                    <div class="tl-dot"></div>
+                    <div class="tl-time">11 PM</div>
+                    <div class="tl-title">First Doubt</div>
+                    <p class="tl-desc">"Why aren't I asleep yet?" The question plants a seed of anxiety that begins to bloom.</p>
+                </div>
+                <div class="tl-item">
+                    <div class="tl-dot"></div>
+                    <div class="tl-time">12 AM</div>
+                    <div class="tl-title">The Scroll</div>
+                    <p class="tl-desc">The phone comes back out. Blue light floods the dark. The dopamine loops begin. Tomorrow feels distant.</p>
+                </div>
+                <div class="tl-item">
+                    <div class="tl-dot"></div>
+                    <div class="tl-time">1 AM</div>
+                    <div class="tl-title">Overthinking</div>
+                    <p class="tl-desc">That thing from three years ago. That email not sent. That conversation that could have gone differently.</p>
+                </div>
+                <div class="tl-item">
+                    <div class="tl-dot"></div>
+                    <div class="tl-time">2 AM</div>
+                    <div class="tl-title">The Bargain</div>
+                    <p class="tl-desc">"If I sleep now I still get 5 hours." The math becomes frantic. The pressure makes sleep even harder.</p>
+                </div>
+                <div class="tl-item">
+                    <div class="tl-dot"></div>
+                    <div class="tl-time">3 AM</div>
+                    <div class="tl-title">The Witching Hour</div>
+                    <p class="tl-desc">The quietest, loneliest hour. The house settles. The world sleeps. You do not.</p>
+                </div>
+                <div class="tl-item">
+                    <div class="tl-dot"></div>
+                    <div class="tl-time">4 AM</div>
+                    <div class="tl-title">Surrender</div>
+                    <p class="tl-desc">Acceptance, of a kind. The body gives in to half-sleep. Shallow, dreamless, unsatisfying.</p>
+                </div>
+                <div class="tl-item">
+                    <div class="tl-dot"></div>
+                    <div class="tl-time">6 AM</div>
+                    <div class="tl-title">The Alarm</div>
+                    <p class="tl-desc">Too soon. Always too soon. A new day built on the ruins of no sleep. The cycle continues tonight.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- TIPS -->
+    <section id="tips">
+        <div class="reveal">
+            <span class="section-tag">// 04 — Finding rest</span>
+            <h2 class="section-title" style="font-size:clamp(2rem,4vw,4rem)">Ways back<br>to <span class="red">sleep</span></h2>
+        </div>
+        <div class="tips-grid reveal">
+            <div class="tip-item">
+                <div class="tip-no">01</div>
+                <div class="tip-content">
+                    <div class="tip-title">4-7-8 Breathing</div>
+                    <p class="tip-text">Inhale for 4 counts. Hold for 7. Exhale for 8. Repeat. This activates the parasympathetic nervous system and slows the racing mind.</p>
+                </div>
+            </div>
+            <div class="tip-item">
+                <div class="tip-no">02</div>
+                <div class="tip-content">
+                    <div class="tip-title">Keep the Schedule</div>
+                    <p class="tip-text">Wake at the same time every day, even after a bad night. Your circadian rhythm is a habit — train it with consistency, not willpower.</p>
+                </div>
+            </div>
+            <div class="tip-item">
+                <div class="tip-no">03</div>
+                <div class="tip-content">
+                    <div class="tip-title">Write It Down</div>
+                    <p class="tip-text">Keep a notebook beside the bed. When a thought arrives, write it down and let it go. The paper holds it so your brain doesn't have to.</p>
+                </div>
+            </div>
+            <div class="tip-item">
+                <div class="tip-no">04</div>
+                <div class="tip-content">
+                    <div class="tip-title">Leave the Bed</div>
+                    <p class="tip-text">If sleep hasn't come in 20 minutes, get up. Read in dim light. Return only when genuinely sleepy. Protect the bed's identity as a place of rest.</p>
+                </div>
+            </div>
+            <div class="tip-item">
+                <div class="tip-no">05</div>
+                <div class="tip-content">
+                    <div class="tip-title">Cool the Room</div>
+                    <p class="tip-text">Core body temperature must drop to initiate sleep. A cooler room (around 18°C) signals the brain that it is safe to rest.</p>
+                </div>
+            </div>
+            <div class="tip-item">
+                <div class="tip-no">06</div>
+                <div class="tip-content">
+                    <div class="tip-title">Avoid the Clock</div>
+                    <p class="tip-text">Turn the clock face away. Watching time pass converts anxiety into obsession. Each minute counted is a minute of sleep lost.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+        <p class="footer-quote">"The worst thing in the world is to try to sleep and not to<br>— <em>it means you are not alone</em>"</p>
+        <p class="footer-sub">3:00 AM — insomnia awareness // built for decode & design</p>
+        <div class="footer-clock">3:00 AM</div>
+    </footer>
+
+    <script>
+        // CURSOR
+        const cursor = document.getElementById('cursor');
+        const trail = document.getElementById('cursorTrail');
+        let mx = 0, my = 0;
+        document.addEventListener('mousemove', e => {
+            mx = e.clientX; my = e.clientY;
+            cursor.style.left = mx + 'px';
+            cursor.style.top = my + 'px';
+            setTimeout(() => {
+                trail.style.left = mx + 'px';
+                trail.style.top = my + 'px';
+            }, 80);
+        });
+
+        // EYE FOLLOW
+        const eyeL = document.getElementById('eyeL');
+        const eyeR = document.getElementById('eyeR');
+        const irisL = document.getElementById('irisL');
+        const irisR = document.getElementById('irisR');
+
+        document.addEventListener('mousemove', e => {
+            [eyeL, eyeR].forEach((eye, i) => {
+                const iris = i === 0 ? irisL : irisR;
+                const rect = eye.getBoundingClientRect();
+                const cx = rect.left + rect.width / 2;
+                const cy = rect.top + rect.height / 2;
+                const dx = e.clientX - cx;
+                const dy = e.clientY - cy;
+                const angle = Math.atan2(dy, dx);
+                const dist = Math.min(Math.sqrt(dx*dx + dy*dy), 14);
+                const ix = Math.cos(angle) * dist;
+                const iy = Math.sin(angle) * dist;
+                iris.style.transform = `translate(calc(-50% + ${ix}px), calc(-50% + ${iy}px))`;
+            });
+        });
+
+        // BLINK
+        function blink() {
+            const lids = [
+                document.getElementById('lidTopL'),
+                document.getElementById('lidBotL'),
+                document.getElementById('lidTopR'),
+                document.getElementById('lidBotR')
+            ];
+            lids.forEach(l => l.style.height = '50%');
+            setTimeout(() => {
+                lids.forEach(l => l.style.height = '0%');
+            }, 200);
+            // random next blink between 3-10 seconds
+            setTimeout(blink, 3000 + Math.random() * 7000);
+        }
+        // Start eyelids at 50% (closed), then open
+        ['lidTopL','lidBotL','lidTopR','lidBotR'].forEach(id => {
+            document.getElementById(id).style.height = '50%';
+            document.getElementById(id).style.transition = 'height 0.6s ease';
+        });
+        setTimeout(() => {
+            ['lidTopL','lidBotL','lidTopR','lidBotR'].forEach(id => {
+                document.getElementById(id).style.height = '0%';
+            });
+            setTimeout(blink, 4000);
+        }, 800);
+
+        // FLOATING THOUGHTS
+        const phrases = [
+            "can't sleep", "3am again", "overthinking",
+            "why am i awake?", "eyes burning", "too quiet",
+            "stop thinking", "walls humming", "just rest",
+            "not again", "make it stop", "tomorrow will be hard",
+            "did i lock the door?", "breathe", "let go"
+        ];
+
+        function spawnThought() {
+            const el = document.createElement('div');
+            el.className = 'thought';
+            el.textContent = phrases[Math.floor(Math.random() * phrases.length)];
+            const side = Math.random() > 0.5;
+            el.style.left = (side ? Math.random() * 22 + 3 : Math.random() * 22 + 73) + '%';
+            el.style.top = (Math.random() * 70 + 15) + '%';
+            document.body.appendChild(el);
+            requestAnimationFrame(() => {
+                el.style.opacity = '1';
+                el.style.filter = 'blur(0px)';
+                el.style.transform = `translateY(-${8 + Math.random()*15}px)`;
+            });
+            setTimeout(() => {
+                el.style.opacity = '0';
+                el.style.filter = 'blur(6px)';
+                setTimeout(() => el.remove(), 1500);
+            }, 2500 + Math.random() * 1500);
+        }
+        setInterval(spawnThought, 1800);
+
+        // SCROLL REVEAL
+        const reveals = document.querySelectorAll('.reveal');
+        const obs = new IntersectionObserver(entries => {
+            entries.forEach(e => {
+                if (e.isIntersecting) { e.target.classList.add('visible'); }
+            });
+        }, { threshold: 0.1 });
+        reveals.forEach(r => obs.observe(r));
+
+        // COUNTER ANIMATION
+        const counters = document.querySelectorAll('.stat-num[data-count]');
+        const counterObs = new IntersectionObserver(entries => {
+            entries.forEach(e => {
+                if (e.isIntersecting) {
+                    const el = e.target;
+                    const target = parseInt(el.getAttribute('data-count'));
+                    let current = 0;
+                    const step = target / 40;
+                    const timer = setInterval(() => {
+                        current = Math.min(current + step, target);
+                        el.textContent = Math.round(current) + (target === 3 ? '' : '%');
+                        if (current >= target) clearInterval(timer);
+                    }, 30);
+                    counterObs.unobserve(el);
+                }
+            });
+        }, { threshold: 0.5 });
+        counters.forEach(c => counterObs.observe(c));
+
+        // JITTER on body - subtle
+        let jitterX = 0, jitterY = 0;
+        function microJitter() {
+            jitterX = (Math.random() - 0.5) * 0.6;
+            jitterY = (Math.random() - 0.5) * 0.6;
+            document.getElementById('eyesWrap').style.transform = `translate(${jitterX}px,${jitterY}px)`;
+            setTimeout(microJitter, 80 + Math.random()*120);
+        }
+        microJitter();
+    </script>
+
+    <!-- ============================================================ -->
+    <!-- NEW FEATURES — APPENDED ONLY, ZERO EDITS TO EXISTING CODE   -->
+    <!-- ============================================================ -->
+
+    <!-- AUTO DARK MODE OVERLAY (10PM–6AM) -->
+    <div id="darkModeBar" style="
+        display:none;
+        position:fixed; top:0; left:0; right:0;
+        background: linear-gradient(90deg, #000, #1a0000, #000);
+        border-bottom: 1px solid rgba(255,26,26,0.3);
+        z-index: 9990;
+        padding: 0.5rem 1.5rem;
+        display: flex; align-items: center; justify-content: center; gap: 0.8rem;
+        font-family: 'Space Mono', monospace;
+        font-size: 0.58rem;
+        letter-spacing: 0.25em;
+        color: rgba(255,26,26,0.7);
+    " id="darkModeBar">
+        <span style="animation: pulse-dot 2s infinite; display:inline-block; width:6px; height:6px; background:#ff1a1a; border-radius:50%;"></span>
+        NIGHT MODE ACTIVE — 10:00 PM TO 6:00 AM — SCREEN DIMMED FOR YOUR EYES
+        <button onclick="document.getElementById('darkModeBar').style.display='none'" style="
+            background:none; border:none; color:rgba(255,26,26,0.4);
+            font-family:'Space Mono',monospace; font-size:0.7rem; cursor:pointer; margin-left:1rem;
+        ">✕</button>
+    </div>
+    <div id="nightOverlay" style="
+        position:fixed; inset:0;
+        background: rgba(0,0,0,0);
+        pointer-events:none;
+        z-index: 9980;
+        transition: background 2s ease;
+    "></div>
+
+    <!-- SLEEP DEPRIVATION WARNING MODAL -->
+    <div id="sleepWarnModal" style="
+        display:none;
+        position:fixed; inset:0;
+        background: rgba(0,0,0,0.92);
+        z-index: 99999;
+        align-items:center; justify-content:center;
+        font-family:'Space Mono',monospace;
+        backdrop-filter: blur(8px);
+    ">
+        <div style="
+            max-width:620px; width:90%;
+            border: 1px solid rgba(255,26,26,0.3);
+            background: linear-gradient(135deg, #0a0000, #000);
+            padding: 3rem;
+            position:relative;
+            box-shadow: 0 0 60px rgba(255,0,0,0.1), inset 0 0 40px rgba(255,0,0,0.03);
+        ">
+            <div style="
+                font-family:'Bebas Neue',sans-serif;
+                font-size:0.6rem; letter-spacing:0.4em;
+                color: rgba(255,26,26,0.5); margin-bottom:1rem;
+            ">⚠ HEALTH WARNING</div>
+            <h2 style="
+                font-family:'DM Serif Display',serif;
+                font-style:italic;
+                font-size:clamp(1.5rem,3vw,2.5rem);
+                color:#f0e8e8; line-height:1.1; margin-bottom:1.8rem;
+            ">What 3–4 hours of sleep<br><span style="color:#ff1a1a;">does to your body</span></h2>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:2rem;">
+                <div style="border:1px solid rgba(255,26,26,0.12); padding:1.2rem; background:rgba(255,0,0,0.02);">
+                    <div style="font-size:1.4rem; margin-bottom:0.5rem;">🧠</div>
+                    <div style="font-size:0.65rem; color:#ff1a1a; letter-spacing:0.1em; margin-bottom:0.4rem;">BRAIN</div>
+                    <p style="font-size:0.58rem; color:rgba(240,232,232,0.5); line-height:1.8;">Memory consolidation fails. Emotional regulation collapses. Decision-making slows by up to 40%. You literally think like a drunk person.</p>
+                </div>
+                <div style="border:1px solid rgba(255,26,26,0.12); padding:1.2rem; background:rgba(255,0,0,0.02);">
+                    <div style="font-size:1.4rem; margin-bottom:0.5rem;">❤️</div>
+                    <div style="font-size:0.65rem; color:#ff1a1a; letter-spacing:0.1em; margin-bottom:0.4rem;">HEART</div>
+                    <p style="font-size:0.58rem; color:rgba(240,232,232,0.5); line-height:1.8;">Blood pressure spikes. Cortisol floods your system. Risk of heart disease increases by 48% with chronic short sleep.</p>
+                </div>
+                <div style="border:1px solid rgba(255,26,26,0.12); padding:1.2rem; background:rgba(255,0,0,0.02);">
+                    <div style="font-size:1.4rem; margin-bottom:0.5rem;">⚗️</div>
+                    <div style="font-size:0.65rem; color:#ff1a1a; letter-spacing:0.1em; margin-bottom:0.4rem;">METABOLISM</div>
+                    <p style="font-size:0.58rem; color:rgba(240,232,232,0.5); line-height:1.8;">Insulin resistance rises. Ghrelin (hunger hormone) surges. Your body craves sugar and fat. Weight gain accelerates silently.</p>
+                </div>
+                <div style="border:1px solid rgba(255,26,26,0.12); padding:1.2rem; background:rgba(255,0,0,0.02);">
+                    <div style="font-size:1.4rem; margin-bottom:0.5rem;">🛡️</div>
+                    <div style="font-size:0.65rem; color:#ff1a1a; letter-spacing:0.1em; margin-bottom:0.4rem;">IMMUNITY</div>
+                    <p style="font-size:0.58rem; color:rgba(240,232,232,0.5); line-height:1.8;">Natural killer cells drop by 70% after one night of 4-hour sleep. You become 4× more likely to catch a cold or infection.</p>
+                </div>
+            </div>
+
+            <div style="
+                border-left: 2px solid #ff1a1a;
+                padding: 1rem 1.5rem;
+                background: rgba(255,26,26,0.04);
+                margin-bottom:2rem;
+                font-size:0.62rem;
+                color:rgba(240,232,232,0.6);
+                line-height:1.9;
+            ">
+                💡 Even a single night of 3–4 hours disrupts your hormonal cycle for up to <strong style="color:#f0e8e8;">72 hours</strong>. Your body needs <strong style="color:#f0e8e8;">7–9 hours</strong> to fully repair and reset.
+            </div>
+
+            <button onclick="document.getElementById('sleepWarnModal').style.display='none'; document.getElementById('soundPanel').style.display='flex';" style="
+                width:100%;
+                background: linear-gradient(90deg, #7a0000, #ff1a1a);
+                border:none; color:#fff;
+                font-family:'Space Mono',monospace;
+                font-size:0.65rem; letter-spacing:0.25em;
+                padding:1rem; cursor:pointer;
+                text-transform:uppercase;
+                transition: opacity 0.3s;
+            " onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
+                I UNDERSTAND — OPEN SOUND PLAYER →
+            </button>
+        </div>
+    </div>
+
+    <!-- AMBIENT SOUND PLAYER PANEL -->
+    <div id="soundPanel" style="
+        display:none;
+        position:fixed;
+        top: 50%; right: 0;
+        transform: translateY(-50%);
+        width: 300px;
+        background: linear-gradient(135deg, #0a0000, #050000);
+        border: 1px solid rgba(255,26,26,0.25);
+        border-right:none;
+        z-index: 9990;
+        font-family:'Space Mono',monospace;
+        box-shadow: -10px 0 40px rgba(255,0,0,0.08);
+        border-radius: 8px 0 0 8px;
+        overflow:hidden;
+        flex-direction:column;
+    ">
+        <!-- Panel Header -->
+        <div style="
+            padding:1.2rem 1.5rem;
+            border-bottom:1px solid rgba(255,26,26,0.1);
+            display:flex; align-items:center; justify-content:space-between;
+        ">
+            <div>
+                <div style="font-size:0.55rem; letter-spacing:0.35em; color:rgba(255,26,26,0.6); margin-bottom:0.2rem;">SLEEP SOUNDS</div>
+                <div id="nowPlaying" style="font-size:0.65rem; color:#f0e8e8; letter-spacing:0.05em;">— select a sound —</div>
+            </div>
+            <button onclick="stopAllSounds(); document.getElementById('soundPanel').style.display='none';" style="
+                background:none; border:1px solid rgba(255,26,26,0.2);
+                color:rgba(255,26,26,0.5); font-family:'Space Mono',monospace;
+                font-size:0.65rem; cursor:pointer; width:28px; height:28px;
+                border-radius:50%; transition:all 0.2s;
+            " onmouseover="this.style.borderColor='rgba(255,26,26,0.6)'" onmouseout="this.style.borderColor='rgba(255,26,26,0.2)'">✕</button>
+        </div>
+
+        <!-- Sound Options -->
+        <div style="padding:1rem 1.5rem; display:flex; flex-direction:column; gap:0.6rem;">
+            <div class="sound-btn" onclick="playSound('rain')" data-sound="rain" style="
+                padding:0.9rem 1.1rem;
+                border:1px solid rgba(255,26,26,0.1);
+                background:rgba(255,26,26,0.02);
+                cursor:pointer; display:flex; align-items:center; gap:1rem;
+                transition:all 0.3s; border-radius:4px;
+            ">
+                <span style="font-size:1.2rem;">🌧️</span>
+                <div>
+                    <div style="font-size:0.6rem; color:#f0e8e8; letter-spacing:0.1em; margin-bottom:0.2rem;">RAIN</div>
+                    <div style="font-size:0.5rem; color:rgba(240,232,232,0.3);">Gentle rainfall on glass</div>
+                </div>
+                <div class="sound-indicator" style="margin-left:auto; width:6px; height:6px; border-radius:50%; background:rgba(255,26,26,0.2); transition:all 0.3s;"></div>
+            </div>
+
+            <div class="sound-btn" onclick="playSound('piano')" data-sound="piano" style="
+                padding:0.9rem 1.1rem;
+                border:1px solid rgba(255,26,26,0.1);
+                background:rgba(255,26,26,0.02);
+                cursor:pointer; display:flex; align-items:center; gap:1rem;
+                transition:all 0.3s; border-radius:4px;
+            ">
+                <span style="font-size:1.2rem;">🎹</span>
+                <div>
+                    <div style="font-size:0.6rem; color:#f0e8e8; letter-spacing:0.1em; margin-bottom:0.2rem;">PIANO</div>
+                    <div style="font-size:0.5rem; color:rgba(240,232,232,0.3);">Slow, deep piano tones</div>
+                </div>
+                <div class="sound-indicator" style="margin-left:auto; width:6px; height:6px; border-radius:50%; background:rgba(255,26,26,0.2); transition:all 0.3s;"></div>
+            </div>
+
+            <div class="sound-btn" onclick="playSound('lullaby')" data-sound="lullaby" style="
+                padding:0.9rem 1.1rem;
+                border:1px solid rgba(255,26,26,0.1);
+                background:rgba(255,26,26,0.02);
+                cursor:pointer; display:flex; align-items:center; gap:1rem;
+                transition:all 0.3s; border-radius:4px;
+            ">
+                <span style="font-size:1.2rem;">🌙</span>
+                <div>
+                    <div style="font-size:0.6rem; color:#f0e8e8; letter-spacing:0.1em; margin-bottom:0.2rem;">SLEEP LULLABY</div>
+                    <div style="font-size:0.5rem; color:rgba(240,232,232,0.3);">Soft melody, drifts you to sleep</div>
+                </div>
+                <div class="sound-indicator" style="margin-left:auto; width:6px; height:6px; border-radius:50%; background:rgba(255,26,26,0.2); transition:all 0.3s;"></div>
+            </div>
+
+            <div class="sound-btn" onclick="playSound('forest')" data-sound="forest" style="
+                padding:0.9rem 1.1rem;
+                border:1px solid rgba(255,26,26,0.1);
+                background:rgba(255,26,26,0.02);
+                cursor:pointer; display:flex; align-items:center; gap:1rem;
+                transition:all 0.3s; border-radius:4px;
+            ">
+                <span style="font-size:1.2rem;">🌿</span>
+                <div>
+                    <div style="font-size:0.6rem; color:#f0e8e8; letter-spacing:0.1em; margin-bottom:0.2rem;">FOREST</div>
+                    <div style="font-size:0.5rem; color:rgba(240,232,232,0.3);">Crickets & night breeze</div>
+                </div>
+                <div class="sound-indicator" style="margin-left:auto; width:6px; height:6px; border-radius:50%; background:rgba(255,26,26,0.2); transition:all 0.3s;"></div>
+            </div>
+
+            <div class="sound-btn" onclick="playSound('ocean')" data-sound="ocean" style="
+                padding:0.9rem 1.1rem;
+                border:1px solid rgba(255,26,26,0.1);
+                background:rgba(255,26,26,0.02);
+                cursor:pointer; display:flex; align-items:center; gap:1rem;
+                transition:all 0.3s; border-radius:4px;
+            ">
+                <span style="font-size:1.2rem;">🌊</span>
+                <div>
+                    <div style="font-size:0.6rem; color:#f0e8e8; letter-spacing:0.1em; margin-bottom:0.2rem;">OCEAN WAVES</div>
+                    <div style="font-size:0.5rem; color:rgba(240,232,232,0.3);">Slow rhythmic shore waves</div>
+                </div>
+                <div class="sound-indicator" style="margin-left:auto; width:6px; height:6px; border-radius:50%; background:rgba(255,26,26,0.2); transition:all 0.3s;"></div>
+            </div>
+        </div>
+
+        <!-- Volume -->
+        <div style="padding:0.8rem 1.5rem 0.8rem; border-top:1px solid rgba(255,26,26,0.08);">
+            <div style="display:flex; align-items:center; gap:0.8rem;">
+                <span style="font-size:0.55rem; letter-spacing:0.2em; color:rgba(255,26,26,0.5);">VOL</span>
+                <input type="range" id="volumeSlider" min="0" max="100" value="60" oninput="setVolume(this.value)" style="
+                    flex:1; accent-color:#ff1a1a; cursor:pointer;
+                    background:transparent; height:4px;
+                ">
+                <span id="volNum" style="font-size:0.55rem; color:rgba(240,232,232,0.3); min-width:28px;">60%</span>
+            </div>
+        </div>
+
+        <!-- Social Media Block -->
+        <div style="
+            padding:1rem 1.5rem;
+            border-top:1px solid rgba(255,26,26,0.08);
+            background:rgba(255,26,26,0.02);
+        ">
+            <div style="font-size:0.5rem; letter-spacing:0.3em; color:rgba(255,26,26,0.5); margin-bottom:0.7rem;">📵 FOCUS MODE</div>
+            <button id="blockBtn" onclick="toggleSocialBlock()" style="
+                width:100%;
+                background:none;
+                border:1px solid rgba(255,26,26,0.2);
+                color:rgba(240,232,232,0.6);
+                font-family:'Space Mono',monospace;
+                font-size:0.55rem; letter-spacing:0.15em;
+                padding:0.7rem; cursor:pointer;
+                text-transform:uppercase;
+                border-radius:4px;
+                transition:all 0.3s;
+            ">Block Social Media</button>
+            <p id="blockStatus" style="
+                font-size:0.5rem; color:rgba(240,232,232,0.25);
+                line-height:1.6; margin-top:0.6rem; display:none;
+            "></p>
+        </div>
+    </div>
+
+    <!-- FLOATING ICON — TOP RIGHT -->
+    <button id="soundTriggerBtn" onclick="openSoundFlow()" style="
+        position:fixed;
+        top: 1.4rem; right: 1.5rem;
+        z-index: 9995;
+        width: 44px; height: 44px;
+        background: rgba(5,0,0,0.85);
+        border: 1px solid rgba(255,26,26,0.35);
+        border-radius: 50%;
+        cursor: pointer;
+        display:flex; align-items:center; justify-content:center;
+        box-shadow: 0 0 15px rgba(255,0,0,0.15), 0 0 30px rgba(255,0,0,0.05);
+        transition: all 0.3s;
+        backdrop-filter: blur(8px);
+    " onmouseover="this.style.boxShadow='0 0 20px rgba(255,0,0,0.4), 0 0 40px rgba(255,0,0,0.15)'; this.style.borderColor='rgba(255,26,26,0.7)'" 
+       onmouseout="this.style.boxShadow='0 0 15px rgba(255,0,0,0.15), 0 0 30px rgba(255,0,0,0.05)'; this.style.borderColor='rgba(255,26,26,0.35)'">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M9 18V5l12-2v13" stroke="#ff1a1a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="6" cy="18" r="3" stroke="#ff1a1a" stroke-width="1.5"/>
+            <circle cx="18" cy="16" r="3" stroke="#ff1a1a" stroke-width="1.5"/>
+        </svg>
+    </button>
+
+    <!-- SLEEP TIMER WIDGET — BOTTOM LEFT -->
+    <div id="sleepTimer" style="
+        position:fixed;
+        bottom: 1.5rem; left: 1.5rem;
+        z-index: 9990;
+        background: rgba(5,0,0,0.88);
+        border: 1px solid rgba(255,26,26,0.2);
+        border-radius: 8px;
+        padding: 1rem 1.4rem;
+        font-family:'Space Mono',monospace;
+        min-width:200px;
+        backdrop-filter:blur(10px);
+        box-shadow: 0 0 20px rgba(255,0,0,0.08);
+    ">
+        <div style="font-size:0.48rem; letter-spacing:0.35em; color:rgba(255,26,26,0.5); margin-bottom:0.4rem; text-transform:uppercase;">⏱ Awake For</div>
+        <div id="timerDisplay" style="
+            font-family:'Bebas Neue',sans-serif;
+            font-size:2.2rem;
+            color:#ff1a1a;
+            line-height:1;
+            text-shadow:0 0 15px rgba(255,0,0,0.4);
+            letter-spacing:2px;
+        ">00:00:00</div>
+        <div style="display:flex; gap:0.5rem; margin-top:0.8rem;">
+            <button onclick="startTimer()" id="timerStart" style="
+                flex:1; background:rgba(255,26,26,0.1); border:1px solid rgba(255,26,26,0.25);
+                color:rgba(240,232,232,0.7); font-family:'Space Mono',monospace;
+                font-size:0.48rem; letter-spacing:0.15em; padding:0.4rem;
+                cursor:pointer; border-radius:3px; text-transform:uppercase; transition:all 0.2s;
+            ">Start</button>
+            <button onclick="resetTimer()" style="
+                flex:1; background:none; border:1px solid rgba(255,26,26,0.1);
+                color:rgba(240,232,232,0.3); font-family:'Space Mono',monospace;
+                font-size:0.48rem; letter-spacing:0.15em; padding:0.4rem;
+                cursor:pointer; border-radius:3px; text-transform:uppercase; transition:all 0.2s;
+            ">Reset</button>
+        </div>
+        <div id="timerWarning" style="
+            font-size:0.48rem; color:rgba(255,80,80,0.7);
+            margin-top:0.6rem; line-height:1.6; display:none;
+        "></div>
+    </div>
+
+    <!-- SOCIAL BLOCK OVERLAY -->
+    <div id="socialBlockOverlay" style="
+        display:none;
+        position:fixed; inset:0;
+        background:rgba(0,0,0,0.96);
+        z-index:999999;
+        flex-direction:column;
+        align-items:center; justify-content:center;
+        font-family:'Space Mono',monospace;
+        text-align:center;
+    ">
+        <div style="font-size:3rem; margin-bottom:1.5rem; animation:pulse-bg 2s infinite;">📵</div>
+        <h2 style="
+            font-family:'DM Serif Display',serif;
+            font-style:italic;
+            font-size:clamp(1.5rem,4vw,3rem);
+            color:#f0e8e8; margin-bottom:1rem; line-height:1.1;
+        ">Put the phone down.<br><span style="color:#ff1a1a;">It's time to sleep.</span></h2>
+        <p style="font-size:0.62rem; color:rgba(240,232,232,0.35); max-width:380px; line-height:2; margin-bottom:2rem;">
+            Social media activates your dopamine system and delays melatonin production by up to 3 hours.<br>
+            Every scroll makes sleep harder.
+        </p>
+        <div id="focusCountdown" style="
+            font-family:'Bebas Neue',sans-serif;
+            font-size:4rem; color:#ff1a1a;
+            text-shadow:0 0 20px rgba(255,0,0,0.4);
+            margin-bottom:1rem;
+        ">05:00</div>
+        <p style="font-size:0.5rem; letter-spacing:0.3em; color:rgba(255,26,26,0.4); margin-bottom:2rem;">FOCUS COUNTDOWN</p>
+        <button onclick="exitSocialBlock()" style="
+            background:none; border:1px solid rgba(255,26,26,0.3);
+            color:rgba(240,232,232,0.4); font-family:'Space Mono',monospace;
+            font-size:0.55rem; letter-spacing:0.2em; padding:0.8rem 2rem;
+            cursor:pointer; text-transform:uppercase; transition:all 0.3s;
+        ">I need to check something (exit)</button>
+    </div>
+
+    <style>
+        @keyframes pulse-dot {
+            0%,100% { opacity:1; transform:scale(1); }
+            50% { opacity:0.4; transform:scale(0.7); }
+        }
+        .sound-btn:hover {
+            border-color: rgba(255,26,26,0.35) !important;
+            background: rgba(255,26,26,0.05) !important;
+        }
+        .sound-btn.active {
+            border-color: rgba(255,26,26,0.5) !important;
+            background: rgba(255,26,26,0.08) !important;
+        }
+        .sound-btn.active .sound-indicator {
+            background: #ff1a1a !important;
+            box-shadow: 0 0 8px rgba(255,0,0,0.8);
+            animation: pulse-dot 1.5s infinite;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            background: #ff1a1a;
+        }
+    </style>
+
+    <script>
+        // ============ AUTO DARK MODE ============
+        (function checkNightMode() {
+            const h = new Date().getHours();
+            const isNight = h >= 22 || h < 6;
+            if (isNight) {
+                document.getElementById('nightOverlay').style.background = 'rgba(0,0,0,0.45)';
+                document.getElementById('darkModeBar').style.display = 'flex';
+            }
+            setTimeout(checkNightMode, 60000);
+        })();
+
+        // ============ SOUND ENGINE (Web Audio API) ============
+        let audioCtx = null;
+        let currentNodes = [];
+        let masterGain = null;
+        let activeSound = null;
+
+        function getAudioCtx() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                masterGain = audioCtx.createGain();
+                masterGain.gain.value = 0.6;
+                masterGain.connect(audioCtx.destination);
+            }
+            return audioCtx;
+        }
+
+        function stopAllSounds() {
+            currentNodes.forEach(n => { try { n.stop(); } catch(e){} });
+            currentNodes = [];
+            activeSound = null;
+            document.querySelectorAll('.sound-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('nowPlaying').textContent = '— select a sound —';
+        }
+
+        function createRainSound(ctx) {
+            const bufferSize = ctx.sampleRate * 3;
+            const buffer = ctx.createBuffer(2, bufferSize, ctx.sampleRate);
+            for (let c = 0; c < 2; c++) {
+                const data = buffer.getChannelData(c);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = (Math.random() * 2 - 1) * 0.4;
+                }
+            }
+            const source = ctx.createBufferSource();
+            source.buffer = buffer;
+            source.loop = true;
+
+            const highpass = ctx.createBiquadFilter();
+            highpass.type = 'highpass';
+            highpass.frequency.value = 1200;
+
+            const lowpass = ctx.createBiquadFilter();
+            lowpass.type = 'lowpass';
+            lowpass.frequency.value = 8000;
+
+            source.connect(highpass);
+            highpass.connect(lowpass);
+            lowpass.connect(masterGain);
+            source.start();
+            return [source];
+        }
+
+        function createLullaby(ctx) {
+            const nodes = [];
+            // A deeply relaxing lullaby in C major pentatonic: C4 E4 G4 A4 C5
+            // Brahms-inspired descending pattern, very slow BPM ~40
+            const melody = [
+                // bar 1 — gentle descend
+                { freq: 523.25, dur: 2.2, vel: 0.13 }, // C5
+                { freq: 440.00, dur: 1.6, vel: 0.10 }, // A4
+                { freq: 392.00, dur: 2.4, vel: 0.11 }, // G4
+                // bar 2
+                { freq: 349.23, dur: 2.0, vel: 0.09 }, // F4
+                { freq: 329.63, dur: 2.8, vel: 0.12 }, // E4
+                // bar 3 — rise and fall
+                { freq: 392.00, dur: 1.8, vel: 0.10 }, // G4
+                { freq: 440.00, dur: 2.2, vel: 0.11 }, // A4
+                { freq: 523.25, dur: 3.0, vel: 0.08 }, // C5 long
+                // bar 4 — resolve to home
+                { freq: 392.00, dur: 2.0, vel: 0.09 }, // G4
+                { freq: 349.23, dur: 1.8, vel: 0.08 }, // F4
+                { freq: 261.63, dur: 4.0, vel: 0.12 }, // C4 — rest note
+            ];
+
+            // Soft pad underneath — sustained low C
+            function addPad() {
+                if (!activeSound || activeSound !== 'lullaby') return;
+                const osc = ctx.createOscillator();
+                const env = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.value = 130.81; // C3 pad
+                env.gain.setValueAtTime(0, ctx.currentTime);
+                env.gain.linearRampToValueAtTime(0.045, ctx.currentTime + 3);
+                env.gain.linearRampToValueAtTime(0.03, ctx.currentTime + 10);
+                osc.connect(env); env.connect(masterGain);
+                osc.start();
+                nodes.push(osc);
+
+                // Fifth above pad (G3) for warmth
+                const osc2 = ctx.createOscillator();
+                const env2 = ctx.createGain();
+                osc2.type = 'sine';
+                osc2.frequency.value = 196.00; // G3
+                env2.gain.setValueAtTime(0, ctx.currentTime);
+                env2.gain.linearRampToValueAtTime(0.025, ctx.currentTime + 4);
+                osc2.connect(env2); env2.connect(masterGain);
+                osc2.start();
+                nodes.push(osc2);
+            }
+            addPad();
+
+            // Soft reverb simulation via delayed copy
+            const delay = ctx.createDelay(0.6);
+            delay.delayTime.value = 0.45;
+            const delayGain = ctx.createGain();
+            delayGain.gain.value = 0.18;
+            delay.connect(delayGain);
+            delayGain.connect(masterGain);
+            delayGain.connect(delay); // feedback
+
+            function scheduleMelody(startTime) {
+                if (!activeSound || activeSound !== 'lullaby') return;
+                let t = startTime;
+                melody.forEach(note => {
+                    // Main sine tone (warm)
+                    const osc = ctx.createOscillator();
+                    const env = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.value = note.freq;
+                    env.gain.setValueAtTime(0, t);
+                    env.gain.linearRampToValueAtTime(note.vel, t + 0.12);
+                    env.gain.setValueAtTime(note.vel * 0.85, t + note.dur * 0.6);
+                    env.gain.exponentialRampToValueAtTime(0.0001, t + note.dur + 0.5);
+                    osc.connect(env); env.connect(masterGain);
+                    osc.connect(delay);
+                    osc.start(t); osc.stop(t + note.dur + 0.8);
+
+                    // Harmonic overtone (very soft, one octave up)
+                    const osc2 = ctx.createOscillator();
+                    const env2 = ctx.createGain();
+                    osc2.type = 'sine';
+                    osc2.frequency.value = note.freq * 2;
+                    env2.gain.setValueAtTime(0, t);
+                    env2.gain.linearRampToValueAtTime(note.vel * 0.2, t + 0.15);
+                    env2.gain.exponentialRampToValueAtTime(0.0001, t + note.dur * 0.8);
+                    osc2.connect(env2); env2.connect(masterGain);
+                    osc2.start(t); osc2.stop(t + note.dur + 0.3);
+
+                    t += note.dur + 0.3;
+                });
+                // Loop the melody with a 3-second breath pause
+                const totalDur = t - startTime + 3;
+                setTimeout(() => {
+                    if (activeSound === 'lullaby') scheduleMelody(ctx.currentTime);
+                }, totalDur * 1000);
+            }
+
+            // Start after a 1-second peaceful silence
+            setTimeout(() => {
+                if (activeSound === 'lullaby') scheduleMelody(ctx.currentTime);
+            }, 1000);
+
+            return nodes;
+        }
+
+        function createPianoSound(ctx) {
+            const nodes = [];
+            const notes = [130.81, 164.81, 196.00, 220.00, 261.63];
+            function playNote() {
+                if (!activeSound || activeSound !== 'piano') return;
+                const freq = notes[Math.floor(Math.random() * notes.length)];
+                const osc = ctx.createOscillator();
+                const g = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.value = freq;
+                g.gain.setValueAtTime(0, ctx.currentTime);
+                g.gain.linearRampToValueAtTime(0.18, ctx.currentTime + 0.01);
+                g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 3);
+                osc.connect(g);
+                g.connect(masterGain);
+                osc.start();
+                osc.stop(ctx.currentTime + 3.5);
+                setTimeout(playNote, 1800 + Math.random() * 2500);
+            }
+            playNote();
+            return nodes;
+        }
+
+        function createForestSound(ctx) {
+            const nodes = [];
+            function chirp() {
+                if (!activeSound || activeSound !== 'forest') return;
+                const osc = ctx.createOscillator();
+                const g = ctx.createGain();
+                osc.type = 'sine';
+                const f = 3000 + Math.random() * 2000;
+                osc.frequency.setValueAtTime(f, ctx.currentTime);
+                osc.frequency.linearRampToValueAtTime(f * 1.1, ctx.currentTime + 0.05);
+                osc.frequency.linearRampToValueAtTime(f, ctx.currentTime + 0.1);
+                g.gain.setValueAtTime(0, ctx.currentTime);
+                g.gain.linearRampToValueAtTime(0.04, ctx.currentTime + 0.02);
+                g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+                osc.connect(g); g.connect(masterGain);
+                osc.start(); osc.stop(ctx.currentTime + 0.2);
+                setTimeout(chirp, 200 + Math.random() * 600);
+            }
+            // Wind base
+            const bufSize = ctx.sampleRate * 2;
+            const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+            const d = buf.getChannelData(0);
+            for(let i=0;i<bufSize;i++) d[i]=(Math.random()*2-1)*0.15;
+            const wind = ctx.createBufferSource();
+            wind.buffer = buf; wind.loop = true;
+            const lp = ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=400;
+            wind.connect(lp); lp.connect(masterGain);
+            wind.start();
+            nodes.push(wind);
+            chirp();
+            return nodes;
+        }
+
+        function createOceanSound(ctx) {
+            const bufSize = ctx.sampleRate * 4;
+            const buf = ctx.createBuffer(2, bufSize, ctx.sampleRate);
+            for(let c=0;c<2;c++) {
+                const d = buf.getChannelData(c);
+                for(let i=0;i<bufSize;i++) d[i]=(Math.random()*2-1)*0.5;
+            }
+            const source = ctx.createBufferSource();
+            source.buffer = buf; source.loop = true;
+            const lp = ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=600;
+            const lfo = ctx.createOscillator();
+            const lfoGain = ctx.createGain();
+            lfo.frequency.value = 0.15;
+            lfoGain.gain.value = 0.3;
+            lfo.connect(lfoGain);
+            source.connect(lp); lp.connect(masterGain);
+            lfo.start(); source.start();
+            return [source, lfo];
+        }
+
+        function playSound(type) {
+            stopAllSounds();
+            activeSound = type;
+            const ctx = getAudioCtx();
+            if (ctx.state === 'suspended') ctx.resume();
+
+            const names = {rain:'🌧️ Rain', piano:'🎹 Piano', lullaby:'🌙 Sleep Lullaby', forest:'🌿 Forest', ocean:'🌊 Ocean Waves'};
+            document.getElementById('nowPlaying').textContent = names[type] || type;
+
+            let nodes = [];
+            if (type === 'rain') nodes = createRainSound(ctx);
+            else if (type === 'piano') nodes = createPianoSound(ctx);
+            else if (type === 'lullaby') nodes = createLullaby(ctx);
+            else if (type === 'forest') nodes = createForestSound(ctx);
+            else if (type === 'ocean') nodes = createOceanSound(ctx);
+
+            currentNodes = nodes;
+            document.querySelectorAll('.sound-btn').forEach(b => b.classList.remove('active'));
+            document.querySelector(`.sound-btn[data-sound="${type}"]`)?.classList.add('active');
+        }
+
+        function setVolume(val) {
+            document.getElementById('volNum').textContent = val + '%';
+            if (masterGain) masterGain.gain.value = val / 100;
+        }
+
+        // ============ OPEN SOUND FLOW ============
+        function openSoundFlow() {
+            const panel = document.getElementById('soundPanel');
+            if (panel.style.display === 'flex') {
+                panel.style.display = 'none';
+            } else {
+                document.getElementById('sleepWarnModal').style.display = 'flex';
+            }
+        }
+
+        // ============ SLEEP TIMER ============
+        let timerInterval = null;
+        let timerSeconds = 0;
+        let timerRunning = false;
+
+        function startTimer() {
+            if (timerRunning) {
+                clearInterval(timerInterval);
+                timerRunning = false;
+                document.getElementById('timerStart').textContent = 'Resume';
+                return;
+            }
+            timerRunning = true;
+            document.getElementById('timerStart').textContent = 'Pause';
+            timerInterval = setInterval(() => {
+                timerSeconds++;
+                const h = Math.floor(timerSeconds / 3600);
+                const m = Math.floor((timerSeconds % 3600) / 60);
+                const s = timerSeconds % 60;
+                document.getElementById('timerDisplay').textContent =
+                    String(h).padStart(2,'0') + ':' +
+                    String(m).padStart(2,'0') + ':' +
+                    String(s).padStart(2,'0');
+
+                const warn = document.getElementById('timerWarning');
+                const hrs = timerSeconds / 3600;
+                if (hrs >= 4) {
+                    warn.style.display = 'block';
+                    warn.textContent = '⚠ 4+ hrs awake. Metabolism disruption begins. Cortisol elevated.';
+                } else if (hrs >= 2) {
+                    warn.style.display = 'block';
+                    warn.textContent = '⏰ 2 hrs awake. Your reaction time is slowing. Try to rest.';
+                } else if (hrs >= 1) {
+                    warn.style.display = 'block';
+                    warn.textContent = '🌙 1 hr awake. Melatonin window is closing.';
+                } else {
+                    warn.style.display = 'none';
+                }
+            }, 1000);
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            timerRunning = false;
+            timerSeconds = 0;
+            document.getElementById('timerDisplay').textContent = '00:00:00';
+            document.getElementById('timerStart').textContent = 'Start';
+            document.getElementById('timerWarning').style.display = 'none';
+        }
+
+        // ============ SOCIAL MEDIA BLOCK ============
+        let socialBlocked = false;
+        let focusTimer = null;
+        let focusSecs = 300;
+
+        function toggleSocialBlock() {
+            if (!socialBlocked) {
+                socialBlocked = true;
+                document.getElementById('blockBtn').textContent = 'Disable Focus Mode';
+                document.getElementById('blockBtn').style.borderColor = 'rgba(255,26,26,0.5)';
+                document.getElementById('blockBtn').style.color = 'rgba(255,100,100,0.8)';
+                document.getElementById('blockStatus').style.display = 'block';
+                document.getElementById('blockStatus').textContent = 'Focus mode active. Social media redirects blocked.';
+                showSocialBlock();
+            } else {
+                exitSocialBlock();
+                socialBlocked = false;
+                document.getElementById('blockBtn').textContent = 'Block Social Media';
+                document.getElementById('blockBtn').style.borderColor = 'rgba(255,26,26,0.2)';
+                document.getElementById('blockBtn').style.color = 'rgba(240,232,232,0.6)';
+                document.getElementById('blockStatus').style.display = 'none';
+            }
+        }
+
+        function showSocialBlock() {
+            const overlay = document.getElementById('socialBlockOverlay');
+            overlay.style.display = 'flex';
+            focusSecs = 300;
+            updateFocusCountdown();
+            focusTimer = setInterval(() => {
+                focusSecs--;
+                updateFocusCountdown();
+                if (focusSecs <= 0) {
+                    clearInterval(focusTimer);
+                    document.getElementById('socialBlockOverlay').style.display = 'none';
+                }
+            }, 1000);
+        }
+
+        function updateFocusCountdown() {
+            const m = Math.floor(focusSecs / 60);
+            const s = focusSecs % 60;
+            document.getElementById('focusCountdown').textContent =
+                String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+        }
+
+        function exitSocialBlock() {
+            clearInterval(focusTimer);
+            document.getElementById('socialBlockOverlay').style.display = 'none';
+        }
+    </script>
+
+    <!-- ============================================================ -->
+    <!-- MIND GAMES — APPENDED ONLY                                   -->
+    <!-- ============================================================ -->
+
+    <!-- GAME LAUNCHER BUTTON — BOTTOM RIGHT -->
+    <button id="gameLaunchBtn" onclick="document.getElementById('gameHub').style.display='flex'" style="
+        position:fixed;
+        bottom: 1.5rem; right: 1.5rem;
+        z-index: 9995;
+        background: rgba(5,0,0,0.88);
+        border: 1px solid rgba(255,26,26,0.35);
+        border-radius: 30px;
+        padding: 0.65rem 1.2rem;
+        cursor: pointer;
+        display:flex; align-items:center; gap:0.6rem;
+        box-shadow: 0 0 15px rgba(255,0,0,0.12);
+        backdrop-filter: blur(8px);
+        transition: all 0.3s;
+        font-family:'Space Mono',monospace;
+    " onmouseover="this.style.boxShadow='0 0 25px rgba(255,0,0,0.3)';this.style.borderColor='rgba(255,26,26,0.7)'"
+       onmouseout="this.style.boxShadow='0 0 15px rgba(255,0,0,0.12)';this.style.borderColor='rgba(255,26,26,0.35)'">
+        <span style="font-size:1rem;">🧘</span>
+        <span style="font-size:0.5rem; letter-spacing:0.25em; color:rgba(255,26,26,0.8); text-transform:uppercase;">Mind Games</span>
+    </button>
+
+    <!-- GAME HUB MODAL -->
+    <div id="gameHub" style="
+        display:none;
+        position:fixed; inset:0;
+        background:rgba(0,0,0,0.95);
+        z-index:99998;
+        align-items:center; justify-content:center;
+        font-family:'Space Mono',monospace;
+        backdrop-filter:blur(12px);
+    ">
+        <div style="
+            max-width:500px; width:92%;
+            border:1px solid rgba(255,26,26,0.2);
+            background:linear-gradient(135deg,#080000,#020000);
+            border-radius:8px;
+            overflow:hidden;
+            box-shadow:0 0 80px rgba(255,0,0,0.07);
+        ">
+            <!-- Hub Header -->
+            <div style="padding:2rem 2rem 1.2rem; border-bottom:1px solid rgba(255,26,26,0.1); display:flex;justify-content:space-between;align-items:center;">
+                <div>
+                    <div style="font-size:0.5rem;letter-spacing:0.4em;color:rgba(255,26,26,0.5);margin-bottom:0.4rem;">MIND RELAXATION</div>
+                    <h2 style="font-family:'DM Serif Display',serif;font-style:italic;font-size:1.6rem;color:#f0e8e8;line-height:1;">Choose your calm</h2>
+                </div>
+                <button onclick="document.getElementById('gameHub').style.display='none'" style="
+                    background:none;border:1px solid rgba(255,26,26,0.2);
+                    color:rgba(255,26,26,0.5);font-family:'Space Mono',monospace;
+                    font-size:0.7rem;cursor:pointer;width:30px;height:30px;
+                    border-radius:50%;transition:all 0.2s;
+                ">✕</button>
+            </div>
+            <!-- Game Cards -->
+            <div style="padding:1.5rem 2rem; display:flex; flex-direction:column; gap:1rem;">
+                <div onclick="openGame('thoughtclean')" style="
+                    border:1px solid rgba(255,26,26,0.12);
+                    background:rgba(255,26,26,0.02);
+                    padding:1.5rem; border-radius:6px; cursor:pointer;
+                    display:flex;gap:1.2rem;align-items:center;
+                    transition:all 0.3s;
+                " onmouseover="this.style.borderColor='rgba(255,26,26,0.4)';this.style.background='rgba(255,26,26,0.05)'"
+                   onmouseout="this.style.borderColor='rgba(255,26,26,0.12)';this.style.background='rgba(255,26,26,0.02)'">
+                    <div style="font-size:2rem;flex-shrink:0;">🌫️</div>
+                    <div>
+                        <div style="font-size:0.65rem;color:#f0e8e8;letter-spacing:0.1em;margin-bottom:0.3rem;">THOUGHT CLEANING ⭐</div>
+                        <div style="font-size:0.55rem;color:rgba(240,232,232,0.35);line-height:1.7;">Click away your negative thoughts. Watch your mind clarity rise from 0 → 100. The screen grows calmer as you let go.</div>
+                    </div>
+                    <div style="margin-left:auto;color:rgba(255,26,26,0.4);font-size:0.9rem;">→</div>
+                </div>
+                <div onclick="openGame('stressmeter')" style="
+                    border:1px solid rgba(255,26,26,0.12);
+                    background:rgba(255,26,26,0.02);
+                    padding:1.5rem; border-radius:6px; cursor:pointer;
+                    display:flex;gap:1.2rem;align-items:center;
+                    transition:all 0.3s;
+                " onmouseover="this.style.borderColor='rgba(255,26,26,0.4)';this.style.background='rgba(255,26,26,0.05)'"
+                   onmouseout="this.style.borderColor='rgba(255,26,26,0.12)';this.style.background='rgba(255,26,26,0.02)'">
+                    <div style="font-size:2rem;flex-shrink:0;">📊</div>
+                    <div>
+                        <div style="font-size:0.65rem;color:#f0e8e8;letter-spacing:0.1em;margin-bottom:0.3rem;">STRESS METER</div>
+                        <div style="font-size:0.55rem;color:rgba(240,232,232,0.35);line-height:1.7;">Complete small calming actions — breathe, drink water, affirm. Each task lowers your stress bar toward calm.</div>
+                    </div>
+                    <div style="margin-left:auto;color:rgba(255,26,26,0.4);font-size:0.9rem;">→</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======== GAME 1: THOUGHT CLEANING ======== -->
+    <div id="gameThoughtClean" style="
+        display:none;
+        position:fixed;inset:0;
+        z-index:99999;
+        font-family:'Space Mono',monospace;
+        overflow:hidden;
+        transition:background 2s ease;
+    ">
+        <!-- Dynamic background — starts chaotic red, calms to deep blue -->
+        <div id="tcBg" style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 50%,rgba(120,0,0,0.5),#000);transition:background 3s ease;pointer-events:none;"></div>
+
+        <!-- Particle canvas -->
+        <canvas id="tcCanvas" style="position:absolute;inset:0;pointer-events:none;"></canvas>
+
+        <!-- Header HUD -->
+        <div style="position:absolute;top:0;left:0;right:0;padding:1.5rem 2rem;display:flex;justify-content:space-between;align-items:center;z-index:10;">
+            <div>
+                <div style="font-size:0.5rem;letter-spacing:0.4em;color:rgba(255,26,26,0.5);margin-bottom:0.3rem;">MIND CLARITY</div>
+                <div style="display:flex;align-items:center;gap:1rem;">
+                    <div style="width:180px;height:4px;background:rgba(255,255,255,0.08);border-radius:2px;overflow:hidden;">
+                        <div id="clarityBar" style="height:100%;width:0%;background:linear-gradient(90deg,#ff1a1a,#ff6b35,#ffd700);border-radius:2px;transition:width 0.6s ease,background 0.6s ease;"></div>
+                    </div>
+                    <span id="clarityScore" style="font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:#ff1a1a;text-shadow:0 0 15px rgba(255,0,0,0.5);transition:color 1s;">0</span>
+                </div>
+            </div>
+            <div style="text-align:right;">
+                <div id="tcThoughtsLeft" style="font-size:0.5rem;letter-spacing:0.2em;color:rgba(240,232,232,0.3);">thoughts remaining: 12</div>
+                <button onclick="closeGame('thoughtclean')" style="
+                    background:none;border:1px solid rgba(255,26,26,0.2);
+                    color:rgba(255,26,26,0.4);font-family:'Space Mono',monospace;
+                    font-size:0.55rem;letter-spacing:0.2em;padding:0.4rem 0.8rem;
+                    cursor:pointer;border-radius:4px;margin-top:0.4rem;text-transform:uppercase;
+                ">Exit</button>
+            </div>
+        </div>
+
+        <!-- Instruction -->
+        <div id="tcInstruct" style="
+            position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);
+            font-size:0.55rem;letter-spacing:0.3em;color:rgba(240,232,232,0.25);
+            text-transform:uppercase;text-align:center;pointer-events:none;
+            animation:fadeInstruct 1s ease 1s forwards;opacity:0;
+        ">tap each thought to release it from your mind</div>
+
+        <!-- End Screen -->
+        <div id="tcEndScreen" style="
+            display:none;position:absolute;inset:0;
+            background:rgba(0,0,5,0.92);
+            align-items:center;justify-content:center;
+            flex-direction:column;text-align:center;
+            z-index:20;
+        ">
+            <div style="font-size:3rem;margin-bottom:1.5rem;">✨</div>
+            <h2 style="font-family:'DM Serif Display',serif;font-style:italic;font-size:clamp(2rem,5vw,3.5rem);color:#f0e8e8;line-height:1.1;margin-bottom:1rem;">
+                Your mind is<br><span style="color:#ffd700;">clear.</span>
+            </h2>
+            <p style="font-size:0.7rem;color:rgba(240,232,232,0.45);letter-spacing:0.2em;margin-bottom:0.5rem;font-style:italic;">"Peace comes from letting go."</p>
+            <p style="font-size:0.55rem;color:rgba(240,232,232,0.25);margin-bottom:2.5rem;letter-spacing:0.1em;">You cleared all 12 thoughts. Mind Clarity: 100</p>
+            <div style="display:flex;gap:1rem;">
+                <button onclick="resetThoughtGame()" style="
+                    background:rgba(255,215,0,0.1);border:1px solid rgba(255,215,0,0.3);
+                    color:rgba(255,215,0,0.8);font-family:'Space Mono',monospace;
+                    font-size:0.55rem;letter-spacing:0.2em;padding:0.8rem 1.5rem;
+                    cursor:pointer;text-transform:uppercase;border-radius:4px;
+                ">Play Again</button>
+                <button onclick="closeGame('thoughtclean')" style="
+                    background:none;border:1px solid rgba(255,26,26,0.2);
+                    color:rgba(255,26,26,0.4);font-family:'Space Mono',monospace;
+                    font-size:0.55rem;letter-spacing:0.2em;padding:0.8rem 1.5rem;
+                    cursor:pointer;text-transform:uppercase;border-radius:4px;
+                ">Exit</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======== GAME 2: STRESS METER ======== -->
+    <div id="gameStressMeter" style="
+        display:none;
+        position:fixed;inset:0;
+        z-index:99999;
+        background:linear-gradient(135deg,#040004,#000004,#000);
+        font-family:'Space Mono',monospace;
+        overflow-y:auto;
+        align-items:center;
+        justify-content:center;
+    ">
+        <div style="max-width:520px;width:92%;padding:2rem 0;margin:auto;">
+
+            <!-- Header -->
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:2.5rem;">
+                <div>
+                    <div style="font-size:0.48rem;letter-spacing:0.4em;color:rgba(255,26,26,0.5);margin-bottom:0.4rem;">STRESS RELEASE</div>
+                    <h2 style="font-family:'DM Serif Display',serif;font-style:italic;font-size:clamp(1.5rem,4vw,2.2rem);color:#f0e8e8;line-height:1.1;">Let the tension go</h2>
+                </div>
+                <button onclick="closeGame('stressmeter')" style="
+                    background:none;border:1px solid rgba(255,26,26,0.2);
+                    color:rgba(255,26,26,0.4);font-family:'Space Mono',monospace;
+                    font-size:0.7rem;cursor:pointer;width:30px;height:30px;
+                    border-radius:50%;flex-shrink:0;margin-top:0.3rem;
+                ">✕</button>
+            </div>
+
+            <!-- Stress Bar -->
+            <div style="margin-bottom:2.5rem;">
+                <div style="display:flex;justify-content:space-between;margin-bottom:0.7rem;">
+                    <span style="font-size:0.5rem;letter-spacing:0.3em;color:rgba(255,26,26,0.6);text-transform:uppercase;">Stress Level</span>
+                    <span id="smStressNum" style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:#ff1a1a;line-height:1;transition:color 1s;">100%</span>
+                </div>
+                <div style="height:8px;background:rgba(255,255,255,0.05);border-radius:4px;overflow:hidden;position:relative;">
+                    <div id="smStressBar" style="
+                        height:100%;width:100%;
+                        background:linear-gradient(90deg,#ff1a1a,#ff4444);
+                        border-radius:4px;
+                        transition:width 0.8s cubic-bezier(0.4,0,0.2,1),background 1s ease;
+                        position:relative;
+                    "></div>
+                </div>
+                <div style="display:flex;justify-content:space-between;margin-top:0.4rem;">
+                    <span style="font-size:0.45rem;color:rgba(255,26,26,0.35);letter-spacing:0.2em;">STRESSED</span>
+                    <span style="font-size:0.45rem;color:rgba(100,200,150,0.35);letter-spacing:0.2em;">CALM</span>
+                </div>
+            </div>
+
+            <!-- Calm Progress -->
+            <div style="margin-bottom:2.5rem;">
+                <div style="display:flex;justify-content:space-between;margin-bottom:0.7rem;">
+                    <span style="font-size:0.5rem;letter-spacing:0.3em;color:rgba(100,200,150,0.5);text-transform:uppercase;">Calm Level</span>
+                    <span id="smCalmNum" style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:rgba(100,200,150,0.5);line-height:1;transition:color 1s;">0%</span>
+                </div>
+                <div style="height:8px;background:rgba(255,255,255,0.05);border-radius:4px;overflow:hidden;">
+                    <div id="smCalmBar" style="
+                        height:100%;width:0%;
+                        background:linear-gradient(90deg,#1a6644,#4ecb8d);
+                        border-radius:4px;
+                        transition:width 0.8s cubic-bezier(0.4,0,0.2,1);
+                    "></div>
+                </div>
+            </div>
+
+            <!-- Action Cards -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;margin-bottom:2rem;" id="smTaskGrid">
+
+                <div class="sm-task" id="smTask1" onclick="doTask(1,20,'smTask1')" style="
+                    border:1px solid rgba(255,26,26,0.15);
+                    background:rgba(255,26,26,0.02);
+                    padding:1.3rem;border-radius:6px;cursor:pointer;
+                    text-align:center;transition:all 0.3s;
+                    position:relative;overflow:hidden;
+                ">
+                    <div id="breathOrb" style="
+                        width:48px;height:48px;border-radius:50%;
+                        background:radial-gradient(circle,rgba(255,26,26,0.3),rgba(255,26,26,0.05));
+                        border:1px solid rgba(255,26,26,0.3);
+                        margin:0 auto 0.8rem;
+                        transition:transform 1s ease,background 1s ease;
+                        display:flex;align-items:center;justify-content:center;
+                        font-size:1.3rem;
+                    ">🌬️</div>
+                    <div style="font-size:0.55rem;color:#f0e8e8;letter-spacing:0.1em;margin-bottom:0.3rem;">TAKE A BREATH</div>
+                    <div style="font-size:0.48rem;color:rgba(240,232,232,0.3);">4 seconds, breathe in</div>
+                    <div class="sm-done-badge" style="display:none;position:absolute;top:0.5rem;right:0.5rem;font-size:0.6rem;color:#4ecb8d;">✓</div>
+                </div>
+
+                <div class="sm-task" id="smTask2" onclick="doTask(2,20,'smTask2')" style="
+                    border:1px solid rgba(255,26,26,0.15);
+                    background:rgba(255,26,26,0.02);
+                    padding:1.3rem;border-radius:6px;cursor:pointer;
+                    text-align:center;transition:all 0.3s;
+                    position:relative;overflow:hidden;
+                ">
+                    <div style="font-size:2rem;margin-bottom:0.8rem;">💧</div>
+                    <div style="font-size:0.55rem;color:#f0e8e8;letter-spacing:0.1em;margin-bottom:0.3rem;">DRINK WATER</div>
+                    <div style="font-size:0.48rem;color:rgba(240,232,232,0.3);">Hydrate your body</div>
+                    <div class="sm-done-badge" style="display:none;position:absolute;top:0.5rem;right:0.5rem;font-size:0.6rem;color:#4ecb8d;">✓</div>
+                </div>
+
+                <div class="sm-task" id="smTask3" onclick="doTask(3,25,'smTask3')" style="
+                    border:1px solid rgba(255,26,26,0.15);
+                    background:rgba(255,26,26,0.02);
+                    padding:1.3rem;border-radius:6px;cursor:pointer;
+                    text-align:center;transition:all 0.3s;
+                    position:relative;overflow:hidden;
+                ">
+                    <div style="font-size:2rem;margin-bottom:0.8rem;">💬</div>
+                    <div style="font-size:0.55rem;color:#f0e8e8;letter-spacing:0.1em;margin-bottom:0.3rem;">AFFIRMATION</div>
+                    <div style="font-size:0.48rem;color:rgba(240,232,232,0.3);">I am safe. I am calm.</div>
+                    <div class="sm-done-badge" style="display:none;position:absolute;top:0.5rem;right:0.5rem;font-size:0.6rem;color:#4ecb8d;">✓</div>
+                </div>
+
+                <div class="sm-task" id="smTask4" onclick="doTask(4,20,'smTask4')" style="
+                    border:1px solid rgba(255,26,26,0.15);
+                    background:rgba(255,26,26,0.02);
+                    padding:1.3rem;border-radius:6px;cursor:pointer;
+                    text-align:center;transition:all 0.3s;
+                    position:relative;overflow:hidden;
+                ">
+                    <div style="font-size:2rem;margin-bottom:0.8rem;">🌙</div>
+                    <div style="font-size:0.55rem;color:#f0e8e8;letter-spacing:0.1em;margin-bottom:0.3rem;">CLOSE EYES</div>
+                    <div style="font-size:0.48rem;color:rgba(240,232,232,0.3);">10 seconds, darkness</div>
+                    <div class="sm-done-badge" style="display:none;position:absolute;top:0.5rem;right:0.5rem;font-size:0.6rem;color:#4ecb8d;">✓</div>
+                </div>
+
+                <div class="sm-task" id="smTask5" onclick="doTask(5,15,'smTask5')" style="
+                    border:1px solid rgba(255,26,26,0.15);
+                    background:rgba(255,26,26,0.02);
+                    padding:1.3rem;border-radius:6px;cursor:pointer;
+                    text-align:center;transition:all 0.3s;
+                    grid-column:span 2;
+                    position:relative;overflow:hidden;
+                    display:flex;gap:1rem;align-items:center;
+                ">
+                    <div style="font-size:2rem;flex-shrink:0;">🧠</div>
+                    <div style="text-align:left;">
+                        <div style="font-size:0.55rem;color:#f0e8e8;letter-spacing:0.1em;margin-bottom:0.3rem;">RELEASE A THOUGHT</div>
+                        <div id="smThoughtText" style="font-size:0.48rem;color:rgba(240,232,232,0.3);font-style:italic;">"This thought does not define me."</div>
+                    </div>
+                    <div class="sm-done-badge" style="display:none;position:absolute;top:0.5rem;right:0.5rem;font-size:0.6rem;color:#4ecb8d;">✓</div>
+                </div>
+            </div>
+
+            <!-- Affirmation display -->
+            <div id="smAffirmBox" style="
+                border:1px solid rgba(100,200,150,0.1);
+                background:rgba(100,200,150,0.02);
+                padding:1.2rem;border-radius:6px;
+                text-align:center;
+                min-height:3.5rem;
+                display:flex;align-items:center;justify-content:center;
+                transition:all 0.5s;
+            ">
+                <p id="smAffirmText" style="font-size:0.62rem;color:rgba(240,232,232,0.25);font-style:italic;line-height:1.7;letter-spacing:0.05em;">
+                    Complete actions above to lower your stress.
+                </p>
+            </div>
+
+            <!-- Full calm end message -->
+            <div id="smEndMsg" style="
+                display:none;
+                margin-top:2rem;
+                border:1px solid rgba(100,200,150,0.2);
+                background:rgba(100,200,150,0.04);
+                padding:2rem;border-radius:8px;text-align:center;
+            ">
+                <div style="font-size:2rem;margin-bottom:1rem;">🌿</div>
+                <h3 style="font-family:'DM Serif Display',serif;font-style:italic;font-size:1.5rem;color:#4ecb8d;margin-bottom:0.7rem;">Stress → Calm</h3>
+                <p style="font-size:0.58rem;color:rgba(240,232,232,0.4);line-height:1.9;">
+                    You did it. Your nervous system is settling.<br>Your body is ready to sleep now. Close your eyes.
+                </p>
+                <button onclick="resetStressGame()" style="
+                    margin-top:1.2rem;
+                    background:none;border:1px solid rgba(100,200,150,0.3);
+                    color:rgba(100,200,150,0.7);font-family:'Space Mono',monospace;
+                    font-size:0.5rem;letter-spacing:0.2em;padding:0.7rem 1.5rem;
+                    cursor:pointer;border-radius:4px;text-transform:uppercase;
+                ">Reset</button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        @keyframes fadeInstruct {
+            from { opacity:0; } to { opacity:1; }
+        }
+        @keyframes thoughtPop {
+            0%   { transform:translate(-50%,-50%) scale(1); opacity:1; }
+            40%  { transform:translate(-50%,-50%) scale(1.3); opacity:0.7; }
+            100% { transform:translate(-50%,-50%) scale(0); opacity:0; }
+        }
+        @keyframes breathExpand {
+            0%,100% { transform:scale(1); }
+            50%      { transform:scale(1.5); }
+        }
+        .sm-task:hover { border-color:rgba(255,26,26,0.35)!important; background:rgba(255,26,26,0.05)!important; }
+        .sm-task.done  { border-color:rgba(100,200,150,0.2)!important; background:rgba(100,200,150,0.03)!important; pointer-events:none; opacity:0.7; }
+    </style>
+
+    <script>
+        // ============ GAME ROUTING ============
+        function openGame(id) {
+            document.getElementById('gameHub').style.display = 'none';
+            if (id === 'thoughtclean') {
+                document.getElementById('gameThoughtClean').style.display = 'block';
+                initThoughtGame();
+            } else if (id === 'stressmeter') {
+                document.getElementById('gameStressMeter').style.display = 'flex';
+                initStressGame();
+            }
+        }
+        function closeGame(id) {
+            if (id === 'thoughtclean') {
+                document.getElementById('gameThoughtClean').style.display = 'none';
+                clearThoughts();
+            } else if (id === 'stressmeter') {
+                document.getElementById('gameStressMeter').style.display = 'none';
+            }
+        }
+
+        // ============ GAME 1: THOUGHT CLEANING ============
+        const negThoughts = [
+            'Anxiety','Fear','Deadlines','Comparison',
+            'Failure','Expectations','Regret','Overthinking',
+            'Self-doubt','Pressure','Worry','Exhaustion'
+        ];
+        let tcScore = 0;
+        let tcTotal = 12;
+        let tcCleared = 0;
+        let tcThoughtEls = [];
+        let tcSpawnInterval = null;
+
+        function initThoughtGame() {
+            tcScore = 0; tcCleared = 0; tcThoughtEls = [];
+
+            const cs = document.getElementById('clarityScore');
+            const cb = document.getElementById('clarityBar');
+            const bg = document.getElementById('tcBg');
+            const es = document.getElementById('tcEndScreen');
+            const tl = document.getElementById('tcThoughtsLeft');
+            if (cs) { cs.textContent = '0'; cs.style.color = '#ff1a1a'; }
+            if (cb) { cb.style.width = '0%'; cb.style.background = 'linear-gradient(90deg,#ff1a1a,#ff4444)'; }
+            if (bg) bg.style.background = 'radial-gradient(ellipse at 50% 50%,rgba(120,0,0,0.5),#000)';
+            if (es) es.style.display = 'none';
+            if (tl) tl.textContent = 'thoughts remaining: 12';
+
+            const canvas = document.getElementById('tcCanvas');
+            if (canvas) { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+
+            clearThoughts();
+            negThoughts.forEach((t, i) => {
+                setTimeout(() => {
+                    const game = document.getElementById('gameThoughtClean');
+                    if (game && game.style.display !== 'none') spawnThought(t, i);
+                }, i * 320);
+            });
+        }
+
+        function spawnThought(text, idx) {
+            const el = document.createElement('div');
+            const area = document.getElementById('gameThoughtClean');
+            const W = window.innerWidth, H = window.innerHeight;
+            // Random position avoiding edges and HUD
+            const x = 12 + Math.random() * 76;
+            const y = 18 + Math.random() * 62;
+
+            // Intensity-based sizing: more critical thoughts = larger
+            const sizes = [1.2,1.1,1.05,1.0,0.95,1.15,1.0,1.1,0.95,1.05,1.0,0.9];
+            const sz = sizes[idx] || 1;
+            const redIntensity = Math.max(0.4, 1 - idx * 0.05);
+
+            el.style.cssText = `
+                position:absolute;
+                left:${x}%;top:${y}%;
+                transform:translate(-50%,-50%);
+                font-family:'Space Mono',monospace;
+                font-size:${sz * 0.9}rem;
+                color:rgba(255,${Math.floor(26*redIntensity)},${Math.floor(26*redIntensity)},${redIntensity});
+                letter-spacing:0.08em;
+                text-transform:uppercase;
+                cursor:pointer;
+                padding:0.5rem 1rem;
+                border:1px solid rgba(255,${Math.floor(26*redIntensity)},${Math.floor(26*redIntensity)},${redIntensity*0.4});
+                background:rgba(${Math.floor(50*redIntensity)},0,0,0.3);
+                border-radius:4px;
+                backdrop-filter:blur(4px);
+                z-index:15;
+                user-select:none;
+                text-shadow:0 0 12px rgba(255,0,0,${redIntensity*0.6});
+                animation:thoughtFloat${idx%3} ${4+Math.random()*3}s ease-in-out infinite;
+                transition:transform 0.1s,opacity 0.1s;
+            `;
+            el.textContent = text;
+
+            // Float animations inline
+            if (!document.getElementById('tcFloatStyles')) {
+                const s = document.createElement('style');
+                s.id = 'tcFloatStyles';
+                s.textContent = `
+                    @keyframes thoughtFloat0 { 0%,100%{transform:translate(-50%,-50%) translateY(0)} 50%{transform:translate(-50%,-50%) translateY(-10px)} }
+                    @keyframes thoughtFloat1 { 0%,100%{transform:translate(-50%,-50%) translateY(-5px)} 50%{transform:translate(-50%,-50%) translateY(8px)} }
+                    @keyframes thoughtFloat2 { 0%,100%{transform:translate(-50%,-50%) rotate(-1deg)} 50%{transform:translate(-50%,-50%) rotate(1deg) translateY(-7px)} }
+                `;
+                document.head.appendChild(s);
+            }
+
+            el.setAttribute('data-thought', text);
+            el.addEventListener('touchend', (e) => { e.preventDefault(); destroyThought(el, text); });
+            area.appendChild(el);
+            tcThoughtEls.push(el);
+
+            // Ripple on hover
+            el.addEventListener('mouseenter', () => { el.style.transform = 'translate(-50%,-50%) scale(1.08)'; });
+            el.addEventListener('mouseleave', () => { el.style.transform = 'translate(-50%,-50%) scale(1)'; });
+        }
+
+        function destroyThought(el, text) {
+            if (!el.parentNode) return;
+            tcCleared++;
+
+            // Pop animation
+            el.style.animation = 'none';
+            el.style.transition = 'transform 0.4s cubic-bezier(0.4,0,0.2,1), opacity 0.4s ease';
+            el.style.transform = 'translate(-50%,-50%) scale(0) rotate(20deg)';
+            el.style.opacity = '0';
+
+            spawnReleaseParticles(el);
+            setTimeout(() => { if (el.parentNode) el.remove(); }, 450);
+
+            // Update score
+            tcScore = Math.round((tcCleared / tcTotal) * 100);
+
+            const cs = document.getElementById('clarityScore');
+            const cb = document.getElementById('clarityBar');
+            const tl = document.getElementById('tcThoughtsLeft');
+            const bg = document.getElementById('tcBg');
+
+            if (cs) {
+                cs.textContent = tcScore;
+                const r = Math.round(255 - tcScore * 2.55);
+                const g = Math.round(tcScore * 1.8);
+                const b = Math.round(tcScore * 1.5);
+                cs.style.color = `rgb(${r},${g+80},${b+100})`;
+            }
+            if (cb) {
+                cb.style.width = tcScore + '%';
+                cb.style.background =
+                    tcScore < 40  ? 'linear-gradient(90deg,#ff1a1a,#ff6b35)' :
+                    tcScore < 75  ? 'linear-gradient(90deg,#ff6b35,#ffd700)' :
+                                    'linear-gradient(90deg,#ffd700,#4ecb8d)';
+            }
+            if (tl) tl.textContent = `thoughts remaining: ${tcTotal - tcCleared}`;
+            if (bg) {
+                const bOpacity = Math.max(0, 0.5 - tcScore * 0.005);
+                const blueShift = Math.round(tcScore * 0.3);
+                bg.style.background = `radial-gradient(ellipse at 50% 50%, rgba(${Math.round(120-tcScore)},0,${blueShift},${bOpacity}), #000)`;
+            }
+
+            if (tcCleared >= tcTotal) setTimeout(showThoughtEnd, 800);
+        }
+
+        function spawnReleaseParticles(el) {
+            const rect = el.getBoundingClientRect();
+            const cx = rect.left + rect.width / 2;
+            const cy = rect.top + rect.height / 2;
+            for (let i = 0; i < 8; i++) {
+                const p = document.createElement('div');
+                const angle = (i / 8) * Math.PI * 2;
+                const dist = 40 + Math.random() * 40;
+                p.style.cssText = `
+                    position:fixed; left:${cx}px; top:${cy}px;
+                    width:4px; height:4px; border-radius:50%;
+                    background:rgba(255,${150+Math.random()*100},50,0.8);
+                    pointer-events:none; z-index:16;
+                    transition:transform 0.6s ease, opacity 0.6s ease;
+                `;
+                document.getElementById('gameThoughtClean').appendChild(p);
+                requestAnimationFrame(() => {
+                    p.style.transform = `translate(${Math.cos(angle)*dist}px,${Math.sin(angle)*dist}px)`;
+                    p.style.opacity = '0';
+                });
+                setTimeout(() => p.remove(), 650);
+            }
+        }
+
+        function showThoughtEnd() {
+            const end = document.getElementById('tcEndScreen');
+            if (end) { end.style.display = 'flex'; }
+        }
+
+        function resetThoughtGame() {
+            document.getElementById('tcEndScreen').style.display = 'none';
+            initThoughtGame();
+        }
+
+        function clearThoughts() {
+            const area = document.getElementById('gameThoughtClean');
+            if (!area) return;
+            // Remove all thought elements tagged with data-thought
+            area.querySelectorAll('[data-thought]').forEach(el => el.remove());
+            tcThoughtEls = [];
+        }
+
+        // ============ GAME 2: STRESS METER ============
+        let smStress = 100;
+        let smCalm   = 0;
+        let smTasksDone = 0;
+        const smAffirms = [
+            '"I release what I cannot control."',
+            '"My body knows how to rest."',
+            '"Each breath brings me closer to sleep."',
+            '"I am enough. I am safe. I am calm."',
+            '"The night holds me gently."',
+        ];
+
+        function initStressGame() {
+            smStress = 100; smCalm = 0; smTasksDone = 0;
+            updateStressBars();
+            document.getElementById('smEndMsg').style.display = 'none';
+            document.getElementById('smAffirmText').textContent = 'Complete actions above to lower your stress.';
+            document.getElementById('smAffirmBox').style.borderColor = 'rgba(100,200,150,0.1)';
+            // Reset all tasks
+            ['smTask1','smTask2','smTask3','smTask4','smTask5'].forEach(id => {
+                const el = document.getElementById(id);
+                el.classList.remove('done');
+                el.querySelector('.sm-done-badge').style.display = 'none';
+            });
+        }
+
+        function doTask(num, reduction, taskId) {
+            const el = document.getElementById(taskId);
+            if (el.classList.contains('done')) return;
+            el.classList.add('done');
+            el.querySelector('.sm-done-badge').style.display = 'block';
+            smTasksDone++;
+
+            smStress = Math.max(0, smStress - reduction);
+            smCalm   = Math.min(100, smCalm + reduction);
+            updateStressBars();
+
+            // Breathing animation
+            if (num === 1) {
+                const orb = document.getElementById('breathOrb');
+                orb.style.animation = 'breathExpand 4s ease-in-out';
+                orb.style.background = 'radial-gradient(circle,rgba(100,200,150,0.4),rgba(100,200,150,0.05))';
+                orb.style.borderColor = 'rgba(100,200,150,0.5)';
+                setTimeout(() => { orb.style.animation = ''; }, 4000);
+            }
+
+            // Affirmation
+            const aff = smAffirms[Math.min(smTasksDone-1, smAffirms.length-1)];
+            document.getElementById('smAffirmText').textContent = aff;
+            document.getElementById('smAffirmText').style.color = `rgba(${Math.round(240-smTasksDone*20)},${200+smTasksDone*8},${200+smTasksDone*8},0.6)`;
+            document.getElementById('smAffirmBox').style.borderColor = `rgba(100,200,${100+smTasksDone*10},${0.1+smTasksDone*0.04})`;
+
+            if (smStress <= 0 || smTasksDone >= 5) {
+                setTimeout(() => {
+                    document.getElementById('smEndMsg').style.display = 'block';
+                    document.getElementById('smEndMsg').scrollIntoView({ behavior:'smooth' });
+                }, 600);
+            }
+        }
+
+        function updateStressBars() {
+            document.getElementById('smStressBar').style.width = smStress + '%';
+            document.getElementById('smStressNum').textContent = smStress + '%';
+            document.getElementById('smCalmBar').style.width = smCalm + '%';
+            document.getElementById('smCalmNum').textContent = smCalm + '%';
+
+            // Color transitions
+            const sEl = document.getElementById('smStressNum');
+            const cEl = document.getElementById('smCalmNum');
+            const pct = smStress / 100;
+            sEl.style.color = `rgba(255,${Math.round(26+pct*0)},${Math.round(26*pct)},${0.5+pct*0.5})`;
+            cEl.style.color = `rgba(${Math.round(100-smCalm*0.3)},${Math.round(150+smCalm*0.5)},${Math.round(100+smCalm*0.5)},${0.3+smCalm/100*0.7})`;
+
+            // Bar color shifts red → orange → green
+            const r = Math.round(255 * pct);
+            const g = Math.round(68 + (1-pct) * 155);
+            document.getElementById('smStressBar').style.background = `linear-gradient(90deg,rgb(${r},${Math.round(g*0.3)},${Math.round(g*0.2)}),rgb(${r},${g},${Math.round(g*0.4)}))`;
+        }
+
+        function resetStressGame() {
+            initStressGame();
+        }
+    </script>
+
+    <!-- ============================================================ -->
+    <!-- NEW FEATURES: STARS · DIARY · QUALITY CHECKER · CHECKLIST   -->
+    <!-- APPENDED ONLY — ZERO EDITS TO EXISTING CODE                 -->
+    <!-- ============================================================ -->
+
+    <!-- ===== STAR / CONSTELLATION CANVAS (hero background) ===== -->
+    <canvas id="starCanvas" style="
+        position:fixed; inset:0;
+        pointer-events:none;
+        z-index:2;
+        opacity:0;
+        transition: opacity 2s ease;
+    "></canvas>
+
+    <!-- ===== FLOATING FEATURE BUTTONS ROW (left side vertical) ===== -->
+    <div style="
+        position:fixed; left:1.5rem; top:50%;
+        transform:translateY(-50%);
+        display:flex; flex-direction:column; gap:0.7rem;
+        z-index:9990;
+    ">
+        <!-- Sleep Diary -->
+        <button onclick="openDiary()" title="Sleep Diary" style="
+            width:42px; height:42px;
+            background:rgba(5,0,0,0.88);
+            border:1px solid rgba(255,26,26,0.3);
+            border-radius:50%; cursor:pointer;
+            display:flex; align-items:center; justify-content:center;
+            font-size:1.1rem;
+            box-shadow:0 0 12px rgba(255,0,0,0.1);
+            transition:all 0.3s;
+            backdrop-filter:blur(8px);
+        " onmouseover="this.style.boxShadow='0 0 20px rgba(255,0,0,0.35)';this.style.borderColor='rgba(255,26,26,0.7)'"
+           onmouseout="this.style.boxShadow='0 0 12px rgba(255,0,0,0.1)';this.style.borderColor='rgba(255,26,26,0.3)'">📓</button>
+
+        <!-- Sleep Quality Checker -->
+        <button onclick="openQualityChecker()" title="Sleep Quality Checker" style="
+            width:42px; height:42px;
+            background:rgba(5,0,0,0.88);
+            border:1px solid rgba(255,26,26,0.3);
+            border-radius:50%; cursor:pointer;
+            display:flex; align-items:center; justify-content:center;
+            font-size:1.1rem;
+            box-shadow:0 0 12px rgba(255,0,0,0.1);
+            transition:all 0.3s;
+            backdrop-filter:blur(8px);
+        " onmouseover="this.style.boxShadow='0 0 20px rgba(255,0,0,0.35)';this.style.borderColor='rgba(255,26,26,0.7)'"
+           onmouseout="this.style.boxShadow='0 0 12px rgba(255,0,0,0.1)';this.style.borderColor='rgba(255,26,26,0.3)'">🔬</button>
+
+        <!-- Bedtime Checklist -->
+        <button onclick="openChecklist()" title="Bedtime Checklist" style="
+            width:42px; height:42px;
+            background:rgba(5,0,0,0.88);
+            border:1px solid rgba(255,26,26,0.3);
+            border-radius:50%; cursor:pointer;
+            display:flex; align-items:center; justify-content:center;
+            font-size:1.1rem;
+            box-shadow:0 0 12px rgba(255,0,0,0.1);
+            transition:all 0.3s;
+            backdrop-filter:blur(8px);
+        " onmouseover="this.style.boxShadow='0 0 20px rgba(255,0,0,0.35)';this.style.borderColor='rgba(255,26,26,0.7)'"
+           onmouseout="this.style.boxShadow='0 0 12px rgba(255,0,0,0.1)';this.style.borderColor='rgba(255,26,26,0.3)'">✅</button>
+    </div>
+
+    <!-- ===== SLEEP DIARY MODAL ===== -->
+    <div id="diaryModal" style="
+        display:none; position:fixed; inset:0;
+        background:rgba(0,0,0,0.93);
+        z-index:99998; align-items:center; justify-content:center;
+        font-family:'Space Mono',monospace;
+        backdrop-filter:blur(12px);
+    ">
+        <div style="
+            max-width:560px; width:92%;
+            border:1px solid rgba(255,26,26,0.2);
+            background:linear-gradient(135deg,#080000,#020000);
+            border-radius:8px; overflow:hidden;
+            box-shadow:0 0 60px rgba(255,0,0,0.07);
+        ">
+            <div style="padding:2rem 2rem 1rem; border-bottom:1px solid rgba(255,26,26,0.1); display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <div style="font-size:0.5rem;letter-spacing:0.4em;color:rgba(255,26,26,0.5);margin-bottom:0.4rem;">TONIGHT'S THOUGHTS</div>
+                    <h2 style="font-family:'DM Serif Display',serif;font-style:italic;font-size:1.8rem;color:#f0e8e8;line-height:1;">Sleep Diary</h2>
+                </div>
+                <button onclick="closeDiary()" style="background:none;border:1px solid rgba(255,26,26,0.2);color:rgba(255,26,26,0.5);font-family:'Space Mono',monospace;font-size:0.7rem;cursor:pointer;width:30px;height:30px;border-radius:50%;">✕</button>
+            </div>
+            <div style="padding:1.5rem 2rem;">
+                <p style="font-size:0.58rem;color:rgba(240,232,232,0.3);line-height:1.8;margin-bottom:1.2rem;letter-spacing:0.05em;">
+                    Write what's on your mind. When you release it — it floats away. The page holds it so you don't have to.
+                </p>
+                <textarea id="diaryInput" placeholder="What's keeping you awake tonight..." style="
+                    width:100%; min-height:120px;
+                    background:rgba(255,26,26,0.03);
+                    border:1px solid rgba(255,26,26,0.15);
+                    border-radius:6px; padding:1rem;
+                    color:#f0e8e8;
+                    font-family:'Space Mono',monospace;
+                    font-size:0.65rem; line-height:1.8;
+                    resize:vertical; outline:none;
+                    transition:border-color 0.3s;
+                " onfocus="this.style.borderColor='rgba(255,26,26,0.4)'" onblur="this.style.borderColor='rgba(255,26,26,0.15)'"></textarea>
+
+                <!-- Past entries -->
+                <div id="diaryEntries" style="margin-top:1.2rem; display:flex; flex-direction:column; gap:0.6rem; max-height:160px; overflow-y:auto;"></div>
+
+                <div style="display:flex;gap:0.8rem;margin-top:1.2rem;">
+                    <button onclick="releaseDiaryThought()" style="
+                        flex:1;
+                        background:linear-gradient(90deg,#3a0000,#ff1a1a);
+                        border:none; color:#fff;
+                        font-family:'Space Mono',monospace;
+                        font-size:0.58rem; letter-spacing:0.2em;
+                        padding:0.9rem; cursor:pointer;
+                        text-transform:uppercase; border-radius:4px;
+                        transition:opacity 0.3s;
+                    " onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
+                        Release This Thought ↑
+                    </button>
+                    <button onclick="clearDiary()" style="
+                        background:none;
+                        border:1px solid rgba(255,26,26,0.15);
+                        color:rgba(240,232,232,0.3);
+                        font-family:'Space Mono',monospace;
+                        font-size:0.58rem; letter-spacing:0.1em;
+                        padding:0.9rem 1.2rem; cursor:pointer;
+                        text-transform:uppercase; border-radius:4px;
+                    ">Clear All</button>
+                </div>
+                <div id="diaryReleasedMsg" style="display:none;text-align:center;margin-top:0.8rem;font-size:0.55rem;color:rgba(255,215,0,0.6);letter-spacing:0.2em;">✨ thought released into the night</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== SLEEP QUALITY CHECKER ===== -->
+    <div id="qualityModal" style="
+        display:none; position:fixed; inset:0;
+        background:rgba(0,0,0,0.93);
+        z-index:99998; align-items:center; justify-content:center;
+        font-family:'Space Mono',monospace;
+        backdrop-filter:blur(12px);
+    ">
+        <div style="
+            max-width:560px; width:92%;
+            border:1px solid rgba(255,26,26,0.2);
+            background:linear-gradient(135deg,#080000,#020000);
+            border-radius:8px; overflow:hidden;
+            max-height:90vh; overflow-y:auto;
+        ">
+            <div style="padding:2rem 2rem 1rem; border-bottom:1px solid rgba(255,26,26,0.1); display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; background:#080000; z-index:2;">
+                <div>
+                    <div style="font-size:0.5rem;letter-spacing:0.4em;color:rgba(255,26,26,0.5);margin-bottom:0.4rem;">// ASSESSMENT</div>
+                    <h2 style="font-family:'DM Serif Display',serif;font-style:italic;font-size:1.8rem;color:#f0e8e8;line-height:1;">Sleep Quality Check</h2>
+                </div>
+                <button onclick="closeQuality()" style="background:none;border:1px solid rgba(255,26,26,0.2);color:rgba(255,26,26,0.5);font-family:'Space Mono',monospace;font-size:0.7rem;cursor:pointer;width:30px;height:30px;border-radius:50%;flex-shrink:0;">✕</button>
+            </div>
+
+            <!-- Questions -->
+            <div id="qualityQuestions" style="padding:1.5rem 2rem; display:flex; flex-direction:column; gap:1.5rem;">
+                <p style="font-size:0.58rem;color:rgba(240,232,232,0.3);line-height:1.8;margin-bottom:0.5rem;">Answer honestly based on the last 7 days.</p>
+
+                <!-- Q1 -->
+                <div class="sq-block">
+                    <div style="font-size:0.62rem;color:#f0e8e8;letter-spacing:0.08em;margin-bottom:0.8rem;line-height:1.6;">1. How many hours of sleep do you typically get per night?</div>
+                    <div style="display:flex;gap:0.5rem;flex-wrap:wrap;" id="sq1">
+                        <button class="sq-opt" onclick="selectOpt('sq1',this,0)" data-val="0" style="padding:0.5rem 1rem;border:1px solid rgba(255,26,26,0.2);background:none;color:rgba(240,232,232,0.5);font-family:'Space Mono',monospace;font-size:0.55rem;cursor:pointer;border-radius:4px;transition:all 0.2s;">Less than 4h</button>
+                        <button class="sq-opt" onclick="selectOpt('sq1',this,1)" data-val="1" style="padding:0.5rem 1rem;border:1px solid rgba(255,26,26,0.2);background:none;color:rgba(240,232,232,0.5);font-family:'Space Mono',monospace;font-size:0.55rem;cursor:pointer;border-radius:4px;transition:all 0.2s;">4–5 hours</button>
+                        <button class="sq-opt" onclick="selectOpt('sq1',this,2)" data-val="2" style="padding:0.5rem 1rem;border:1px solid rgba(255,26,26,0.2);background:none;color:rgba(240,232,232,0.5);font-family:'Space Mono',monospace;font-size:0.55rem;cursor:pointer;border-radius:4px;transition:all 0.2s;">5–6 hours</button>
+                        <button class="sq-opt" onclick="selectOpt('sq1',this,3)" data-val="3" style="padding:0.5rem 1rem;border:1px solid rgba(255,26,26,0.2);background:none;color:rgba(240,232,232,0.5);font-family:'Space Mono',monospace;font-size:0.55rem;cursor:pointer;border-radius:4px;transition:all 0.2s;">7–9 hours</button>
+                    </div>
+                </div>
+
+                <!-- Q2 -->
+                <div class="sq-block">
+                    <div style="font-size:0.62rem;color:#f0e8e8;letter-spacing:0.08em;margin-bottom:0.8rem;line-height:1.6;">2. How long does it take you to fall asleep?</div>
+                    <div style="display:flex;gap:0.5rem;flex-wrap:wrap;" id="sq2">
+                        <button class="sq-opt" onclick="selectOpt('sq2',this,0)" style="padding:0.5rem 1rem;border:1px solid rgba(255,26,26,0.2);background:none;color:rgba(240,232,232,0.5);font-family:'Space Mono',monospace;font-size:0.55rem;cursor:pointer;border-radius:4px;transition:all 0.2s;">Over 1 hour</button>
+                        <button class="sq-opt" onclick="selectOpt('sq2',this,1)" style="padding:0.5rem 1rem;border:1px solid rgba(255,26,26,0.2);background:none;color:rgba(240,232,232,0.5);font-family:'Space Mono',monospace;font-size:0.55rem;cursor:pointer;border-radius:4px;transition:all 0.2s;">30–60 min</button>
+                        <button class="sq-opt" onclick="selectOpt('sq2',this,2)" style="padding:0.5rem 1rem;border:1px solid rgba(255,26,26,0.2);background:none;color:rgba(240,232,232,0.5);font-family:'Space Mono',monospace;font-size:0.55rem;cursor:pointer;border-radius:4px;transition:all 0.2s;">15–30 min</button>
+                        <button class="sq-opt" onclick="selectOpt('sq2',this,3)" style="padding:0.5rem 1rem;border:1px solid rgba(255,26,26,0.2);background:none;color:rgba(240,232,232,0.5);font-family:'Space Mono',monospace;font-size:0.55rem;cursor:pointer;border-radius:4px;transition:all 0.2s;">Under 15 min</button>
+                    </div>
+                </div>
+
+                <!-- Q3 -->
+                <div class="sq-block">
+                    <div style="font-size:0.62rem;color:#f0e8e8;letter-spacing:0.08em;margin-bottom:0.8rem;line-height:1.6;">3. How often do you wake up in the middle of the night?</div>
+                    <div style="display:flex;gap:0.5rem;flex-wrap:wrap;" id="sq3">
+                        <button class="sq-opt" onclick="selectOpt('sq3',this,0)" style="padding:0.5rem 1rem;border:1px solid rgba(255,26,26,0.2);background:none;color:rgba(240,232,232,0.5);font-family:'Space Mono',monospace;font-size:0.55rem;cursor:pointer;border-radius:4px;transition:all 0.2s;">Every night</button>
+                        <button class="sq-opt" onclick="selectOpt('sq3',this,1)" style="padding:0.5rem 1rem;border:1px solid rgba(255,26,26,0.2);background:none;color:rgba(240,232,232,0.5);font-family:'Space Mono',monospace;font-size:0.55rem;cursor:pointer;border-radius:4px;transition:all 0.2s;">3–4 nights/week</button>
+                        <button class="sq-opt" onclick="selectOpt('sq3',this,2)" style="padding:0.5rem 1rem;border:1px solid rgba(255,26,26,0.2);background:none;color:rgba(240,232,232,0.5);font-family:'Space Mono',monospace;font-size:0.55rem;cursor:pointer;border-radius:4px;transition:all 0.2s;">1–2 nights/week</button>
+                        <button class="sq-opt" onclick="selectOpt('sq3',this,3)" style="padding:0.5rem 1rem;border:1px solid rgba(255,26,26,0.2);background:none;color:rgba(240,232,232,0.5);font-family:'Space Mono',monospace;font-size:0.55rem;cursor:pointer;border-radius:4px;transition:all 0.2s;">Rarely</button>
+                    </div>
+                </div>
+
+                <!-- Q4 -->
+                <div class="sq-block">
+                    <div style="font-size:0.62rem;color:#f0e8e8;letter-spacing:0.08em;margin-bottom:0.8rem;line-height:1.6;">4. How do you feel when you wake up in the morning?</div>
+                    <div style="display:flex;gap:0.5rem;flex-wrap:wrap;" id="sq4">
+                        <button class="sq-opt" onclick="selectOpt('sq4',this,0)" style="padding:0.5rem 1rem;border:1px solid rgba(255,26,26,0.2);background:none;color:rgba(240,232,232,0.5);font-family:'Space Mono',monospace;font-size:0.55rem;cursor:pointer;border-radius:4px;transition:all 0.2s;">Exhausted</button>
+                        <button class="sq-opt" onclick="selectOpt('sq4',this,1)" style="padding:0.5rem 1rem;border:1px solid rgba(255,26,26,0.2);background:none;color:rgba(240,232,232,0.5);font-family:'Space Mono',monospace;font-size:0.55rem;cursor:pointer;border-radius:4px;transition:all 0.2s;">Tired</button>
+                        <button class="sq-opt" onclick="selectOpt('sq4',this,2)" style="padding:0.5rem 1rem;border:1px solid rgba(255,26,26,0.2);background:none;color:rgba(240,232,232,0.5);font-family:'Space Mono',monospace;font-size:0.55rem;cursor:pointer;border-radius:4px;transition:all 0.2s;">Groggy</button>
+                        <button class="sq-opt" onclick="selectOpt('sq4',this,3)" style="padding:0.5rem 1rem;border:1px solid rgba(255,26,26,0.2);background:none;color:rgba(240,232,232,0.5);font-family:'Space Mono',monospace;font-size:0.55rem;cursor:pointer;border-radius:4px;transition:all 0.2s;">Refreshed</button>
+                    </div>
+                </div>
+
+                <!-- Q5 -->
+                <div class="sq-block">
+                    <div style="font-size:0.62rem;color:#f0e8e8;letter-spacing:0.08em;margin-bottom:0.8rem;line-height:1.6;">5. How often do you use your phone/screen before bed?</div>
+                    <div style="display:flex;gap:0.5rem;flex-wrap:wrap;" id="sq5">
+                        <button class="sq-opt" onclick="selectOpt('sq5',this,0)" style="padding:0.5rem 1rem;border:1px solid rgba(255,26,26,0.2);background:none;color:rgba(240,232,232,0.5);font-family:'Space Mono',monospace;font-size:0.55rem;cursor:pointer;border-radius:4px;transition:all 0.2s;">Always (in bed)</button>
+                        <button class="sq-opt" onclick="selectOpt('sq5',this,1)" style="padding:0.5rem 1rem;border:1px solid rgba(255,26,26,0.2);background:none;color:rgba(240,232,232,0.5);font-family:'Space Mono',monospace;font-size:0.55rem;cursor:pointer;border-radius:4px;transition:all 0.2s;">Often</button>
+                        <button class="sq-opt" onclick="selectOpt('sq5',this,2)" style="padding:0.5rem 1rem;border:1px solid rgba(255,26,26,0.2);background:none;color:rgba(240,232,232,0.5);font-family:'Space Mono',monospace;font-size:0.55rem;cursor:pointer;border-radius:4px;transition:all 0.2s;">Sometimes</button>
+                        <button class="sq-opt" onclick="selectOpt('sq5',this,3)" style="padding:0.5rem 1rem;border:1px solid rgba(255,26,26,0.2);background:none;color:rgba(240,232,232,0.5);font-family:'Space Mono',monospace;font-size:0.55rem;cursor:pointer;border-radius:4px;transition:all 0.2s;">Never</button>
+                    </div>
+                </div>
+
+                <button onclick="calcSleepScore()" style="
+                    width:100%; margin-top:0.5rem;
+                    background:linear-gradient(90deg,#3a0000,#ff1a1a);
+                    border:none; color:#fff;
+                    font-family:'Space Mono',monospace;
+                    font-size:0.62rem; letter-spacing:0.25em;
+                    padding:1rem; cursor:pointer;
+                    text-transform:uppercase; border-radius:4px;
+                    transition:opacity 0.3s;
+                " onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
+                    Analyse My Sleep →
+                </button>
+            </div>
+
+            <!-- Result panel -->
+            <div id="qualityResult" style="display:none; padding:2rem; border-top:1px solid rgba(255,26,26,0.1);">
+                <div style="font-size:0.5rem;letter-spacing:0.4em;color:rgba(255,26,26,0.5);margin-bottom:1rem;">YOUR SLEEP SCORE</div>
+                <div style="display:flex;align-items:center;gap:2rem;margin-bottom:1.5rem;">
+                    <div id="sqScoreNum" style="font-family:'Bebas Neue',sans-serif;font-size:5rem;color:#ff1a1a;line-height:1;text-shadow:0 0 20px rgba(255,0,0,0.4);transition:color 1s;">0</div>
+                    <div>
+                        <div id="sqScoreLabel" style="font-family:'DM Serif Display',serif;font-style:italic;font-size:1.3rem;color:#f0e8e8;margin-bottom:0.4rem;"></div>
+                        <div id="sqScoreBar" style="width:200px;height:5px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden;"><div id="sqScoreBarFill" style="height:100%;width:0%;background:#ff1a1a;border-radius:3px;transition:width 1.5s cubic-bezier(0.4,0,0.2,1),background 1s;"></div></div>
+                    </div>
+                </div>
+                <div id="sqAdvice" style="font-size:0.6rem;color:rgba(240,232,232,0.45);line-height:2;border-left:2px solid rgba(255,26,26,0.3);padding-left:1rem;margin-bottom:1.5rem;"></div>
+                <button onclick="resetQuality()" style="background:none;border:1px solid rgba(255,26,26,0.2);color:rgba(255,26,26,0.5);font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:0.2em;padding:0.7rem 1.5rem;cursor:pointer;text-transform:uppercase;border-radius:4px;">Retake →</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== BEDTIME CHECKLIST MODAL ===== -->
+    <div id="checklistModal" style="
+        display:none; position:fixed; inset:0;
+        background:rgba(0,0,0,0.93);
+        z-index:99998; align-items:center; justify-content:center;
+        font-family:'Space Mono',monospace;
+        backdrop-filter:blur(12px);
+    ">
+        <div style="
+            max-width:500px; width:92%;
+            border:1px solid rgba(255,26,26,0.2);
+            background:linear-gradient(135deg,#080000,#020000);
+            border-radius:8px; overflow:hidden;
+        ">
+            <div style="padding:2rem 2rem 1rem; border-bottom:1px solid rgba(255,26,26,0.1); display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <div style="font-size:0.5rem;letter-spacing:0.4em;color:rgba(255,26,26,0.5);margin-bottom:0.4rem;">TONIGHT'S RITUAL</div>
+                    <h2 style="font-family:'DM Serif Display',serif;font-style:italic;font-size:1.8rem;color:#f0e8e8;line-height:1;">Bedtime Checklist</h2>
+                </div>
+                <button onclick="closeChecklist()" style="background:none;border:1px solid rgba(255,26,26,0.2);color:rgba(255,26,26,0.5);font-family:'Space Mono',monospace;font-size:0.7rem;cursor:pointer;width:30px;height:30px;border-radius:50%;">✕</button>
+            </div>
+            <div style="padding:1.5rem 2rem;">
+                <p style="font-size:0.55rem;color:rgba(240,232,232,0.25);line-height:1.8;margin-bottom:1.2rem;">Complete each step to prepare your body and mind for sleep.</p>
+
+                <!-- Progress bar -->
+                <div style="margin-bottom:1.5rem;">
+                    <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem;">
+                        <span style="font-size:0.5rem;letter-spacing:0.2em;color:rgba(255,26,26,0.4);text-transform:uppercase;">Progress</span>
+                        <span id="clProgress" style="font-family:'Bebas Neue',sans-serif;font-size:1rem;color:rgba(255,26,26,0.7);">0 / 8</span>
+                    </div>
+                    <div style="height:3px;background:rgba(255,255,255,0.05);border-radius:2px;overflow:hidden;">
+                        <div id="clProgressBar" style="height:100%;width:0%;background:linear-gradient(90deg,#ff1a1a,#ffd700);border-radius:2px;transition:width 0.5s ease,background 0.5s ease;"></div>
+                    </div>
+                </div>
+
+                <!-- Items -->
+                <div style="display:flex;flex-direction:column;gap:0.5rem;" id="clItems">
+                    <div class="cl-item" onclick="toggleCheck(this)" data-done="0" style="display:flex;align-items:center;gap:1rem;padding:0.9rem 1rem;border:1px solid rgba(255,26,26,0.1);border-radius:5px;cursor:pointer;transition:all 0.3s;background:rgba(255,26,26,0.02);">
+                        <div class="cl-box" style="width:18px;height:18px;border:1.5px solid rgba(255,26,26,0.35);border-radius:3px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all 0.3s;font-size:0.7rem;"></div>
+                        <div><div style="font-size:0.6rem;color:#f0e8e8;letter-spacing:0.05em;margin-bottom:0.15rem;">📵 Put the phone face down</div><div style="font-size:0.48rem;color:rgba(240,232,232,0.28);">Blue light delays melatonin by 3 hours</div></div>
+                    </div>
+                    <div class="cl-item" onclick="toggleCheck(this)" data-done="0" style="display:flex;align-items:center;gap:1rem;padding:0.9rem 1rem;border:1px solid rgba(255,26,26,0.1);border-radius:5px;cursor:pointer;transition:all 0.3s;background:rgba(255,26,26,0.02);">
+                        <div class="cl-box" style="width:18px;height:18px;border:1.5px solid rgba(255,26,26,0.35);border-radius:3px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all 0.3s;font-size:0.7rem;"></div>
+                        <div><div style="font-size:0.6rem;color:#f0e8e8;letter-spacing:0.05em;margin-bottom:0.15rem;">💡 Dim or turn off the lights</div><div style="font-size:0.48rem;color:rgba(240,232,232,0.28);">Darkness signals your brain to produce melatonin</div></div>
+                    </div>
+                    <div class="cl-item" onclick="toggleCheck(this)" data-done="0" style="display:flex;align-items:center;gap:1rem;padding:0.9rem 1rem;border:1px solid rgba(255,26,26,0.1);border-radius:5px;cursor:pointer;transition:all 0.3s;background:rgba(255,26,26,0.02);">
+                        <div class="cl-box" style="width:18px;height:18px;border:1.5px solid rgba(255,26,26,0.35);border-radius:3px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all 0.3s;font-size:0.7rem;"></div>
+                        <div><div style="font-size:0.6rem;color:#f0e8e8;letter-spacing:0.05em;margin-bottom:0.15rem;">🌡️ Cool the room to ~18°C</div><div style="font-size:0.48rem;color:rgba(240,232,232,0.28);">Body temp must drop to initiate deep sleep</div></div>
+                    </div>
+                    <div class="cl-item" onclick="toggleCheck(this)" data-done="0" style="display:flex;align-items:center;gap:1rem;padding:0.9rem 1rem;border:1px solid rgba(255,26,26,0.1);border-radius:5px;cursor:pointer;transition:all 0.3s;background:rgba(255,26,26,0.02);">
+                        <div class="cl-box" style="width:18px;height:18px;border:1.5px solid rgba(255,26,26,0.35);border-radius:3px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all 0.3s;font-size:0.7rem;"></div>
+                        <div><div style="font-size:0.6rem;color:#f0e8e8;letter-spacing:0.05em;margin-bottom:0.15rem;">💧 Drink a glass of water</div><div style="font-size:0.48rem;color:rgba(240,232,232,0.28);">Dehydration disrupts sleep cycles</div></div>
+                    </div>
+                    <div class="cl-item" onclick="toggleCheck(this)" data-done="0" style="display:flex;align-items:center;gap:1rem;padding:0.9rem 1rem;border:1px solid rgba(255,26,26,0.1);border-radius:5px;cursor:pointer;transition:all 0.3s;background:rgba(255,26,26,0.02);">
+                        <div class="cl-box" style="width:18px;height:18px;border:1.5px solid rgba(255,26,26,0.35);border-radius:3px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all 0.3s;font-size:0.7rem;"></div>
+                        <div><div style="font-size:0.6rem;color:#f0e8e8;letter-spacing:0.05em;margin-bottom:0.15rem;">📖 Write one worry in a journal</div><div style="font-size:0.48rem;color:rgba(240,232,232,0.28);">Externalising thoughts quiets the mind</div></div>
+                    </div>
+                    <div class="cl-item" onclick="toggleCheck(this)" data-done="0" style="display:flex;align-items:center;gap:1rem;padding:0.9rem 1rem;border:1px solid rgba(255,26,26,0.1);border-radius:5px;cursor:pointer;transition:all 0.3s;background:rgba(255,26,26,0.02);">
+                        <div class="cl-box" style="width:18px;height:18px;border:1.5px solid rgba(255,26,26,0.35);border-radius:3px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all 0.3s;font-size:0.7rem;"></div>
+                        <div><div style="font-size:0.6rem;color:#f0e8e8;letter-spacing:0.05em;margin-bottom:0.15rem;">🌬️ Take 3 deep breaths</div><div style="font-size:0.48rem;color:rgba(240,232,232,0.28);">Activates the parasympathetic nervous system</div></div>
+                    </div>
+                    <div class="cl-item" onclick="toggleCheck(this)" data-done="0" style="display:flex;align-items:center;gap:1rem;padding:0.9rem 1rem;border:1px solid rgba(255,26,26,0.1);border-radius:5px;cursor:pointer;transition:all 0.3s;background:rgba(255,26,26,0.02);">
+                        <div class="cl-box" style="width:18px;height:18px;border:1.5px solid rgba(255,26,26,0.35);border-radius:3px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all 0.3s;font-size:0.7rem;"></div>
+                        <div><div style="font-size:0.6rem;color:#f0e8e8;letter-spacing:0.05em;margin-bottom:0.15rem;">⏰ Set your alarm and put it away</div><div style="font-size:0.48rem;color:rgba(240,232,232,0.28);">Removes the urge to check the time</div></div>
+                    </div>
+                    <div class="cl-item" onclick="toggleCheck(this)" data-done="0" style="display:flex;align-items:center;gap:1rem;padding:0.9rem 1rem;border:1px solid rgba(255,26,26,0.1);border-radius:5px;cursor:pointer;transition:all 0.3s;background:rgba(255,26,26,0.02);">
+                        <div class="cl-box" style="width:18px;height:18px;border:1.5px solid rgba(255,26,26,0.35);border-radius:3px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all 0.3s;font-size:0.7rem;"></div>
+                        <div><div style="font-size:0.6rem;color:#f0e8e8;letter-spacing:0.05em;margin-bottom:0.15rem;">🛏️ Lie down and close your eyes</div><div style="font-size:0.48rem;color:rgba(240,232,232,0.28);">You have done everything right. Rest now.</div></div>
+                    </div>
+                </div>
+
+                <!-- Complete msg -->
+                <div id="clDoneMsg" style="display:none;margin-top:1.5rem;text-align:center;border:1px solid rgba(255,215,0,0.15);background:rgba(255,215,0,0.03);padding:1.5rem;border-radius:6px;">
+                    <div style="font-size:2rem;margin-bottom:0.8rem;">🌙</div>
+                    <div style="font-family:'DM Serif Display',serif;font-style:italic;font-size:1.2rem;color:#ffd700;margin-bottom:0.5rem;">Your mind is ready.</div>
+                    <div style="font-size:0.55rem;color:rgba(240,232,232,0.35);line-height:1.8;">You have completed your bedtime ritual.<br>Close your eyes. Sleep will come.</div>
+                </div>
+
+                <button onclick="resetChecklist()" style="width:100%;margin-top:1rem;background:none;border:1px solid rgba(255,26,26,0.15);color:rgba(240,232,232,0.25);font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:0.2em;padding:0.7rem;cursor:pointer;text-transform:uppercase;border-radius:4px;transition:all 0.3s;">Reset for Tomorrow</button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .sq-opt.selected {
+            background: rgba(255,26,26,0.12) !important;
+            border-color: rgba(255,26,26,0.5) !important;
+            color: #ff1a1a !important;
+        }
+        .cl-item.checked {
+            border-color: rgba(100,200,150,0.25) !important;
+            background: rgba(100,200,150,0.04) !important;
+            opacity: 0.7;
+        }
+        .cl-item.checked .cl-box {
+            background: rgba(100,200,150,0.2);
+            border-color: rgba(100,200,150,0.5) !important;
+        }
+        /* Star canvas pulse */
+        @keyframes starTwinkle {
+            0%,100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+    </style>
+
+    <script>
+        // ========== STAR CONSTELLATION BACKGROUND ==========
+        const starCanvas = document.getElementById('starCanvas');
+        const starCtx = starCanvas.getContext('2d');
+        let stars = [], constellationLines = [];
+        let starOpacity = 0; // controlled by sleep score / clarity score
+
+        function resizeStarCanvas() {
+            starCanvas.width = window.innerWidth;
+            starCanvas.height = window.innerHeight;
+        }
+        resizeStarCanvas();
+        window.addEventListener('resize', resizeStarCanvas);
+
+        // Generate stars
+        function generateStars() {
+            stars = [];
+            for (let i = 0; i < 180; i++) {
+                stars.push({
+                    x: Math.random() * starCanvas.width,
+                    y: Math.random() * starCanvas.height,
+                    r: Math.random() * 1.5 + 0.3,
+                    twinkle: Math.random() * Math.PI * 2,
+                    speed: 0.01 + Math.random() * 0.02,
+                    brightness: 0.4 + Math.random() * 0.6
+                });
+            }
+            // Build constellation lines between nearby stars
+            constellationLines = [];
+            for (let i = 0; i < stars.length; i++) {
+                for (let j = i + 1; j < stars.length; j++) {
+                    const dx = stars[i].x - stars[j].x;
+                    const dy = stars[i].y - stars[j].y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < 100 && Math.random() > 0.85) {
+                        constellationLines.push([i, j, dist]);
+                    }
+                }
+            }
+        }
+        generateStars();
+
+        let rafId;
+        function drawStars() {
+            starCtx.clearRect(0, 0, starCanvas.width, starCanvas.height);
+            if (starOpacity <= 0) { rafId = requestAnimationFrame(drawStars); return; }
+
+            // Draw constellation lines
+            constellationLines.forEach(([a, b]) => {
+                starCtx.beginPath();
+                starCtx.moveTo(stars[a].x, stars[a].y);
+                starCtx.lineTo(stars[b].x, stars[b].y);
+                starCtx.strokeStyle = `rgba(200,180,255,${0.04 * starOpacity})`;
+                starCtx.lineWidth = 0.5;
+                starCtx.stroke();
+            });
+
+            // Draw stars
+            stars.forEach(s => {
+                s.twinkle += s.speed;
+                const twinkleFactor = 0.6 + 0.4 * Math.sin(s.twinkle);
+                const alpha = s.brightness * twinkleFactor * starOpacity;
+                const gradient = starCtx.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.r * 3);
+                gradient.addColorStop(0, `rgba(255,240,200,${alpha})`);
+                gradient.addColorStop(1, `rgba(200,180,255,0)`);
+                starCtx.beginPath();
+                starCtx.arc(s.x, s.y, s.r * 3, 0, Math.PI * 2);
+                starCtx.fillStyle = gradient;
+                starCtx.fill();
+            });
+
+            rafId = requestAnimationFrame(drawStars);
+        }
+        drawStars();
+
+        // Hook into thought game clarity score — stars appear as mind clears
+        const _origDestroy = window.destroyThought;
+        // Override star opacity update whenever clarity changes
+        function updateStarOpacity(clarityPercent) {
+            starOpacity = clarityPercent / 100;
+            starCanvas.style.opacity = starOpacity > 0 ? '1' : '0';
+        }
+
+        // Patch destroyThought to also update stars
+        const _origDestroyThought = destroyThought;
+        destroyThought = function(el, text) {
+            _origDestroyThought(el, text);
+            const cs = document.getElementById('clarityScore');
+            if (cs) updateStarOpacity(parseInt(cs.textContent) || 0);
+        };
+
+        // Also show stars when stress game reaches calm
+        const _origDoTask = doTask;
+        doTask = function(num, red, taskId) {
+            _origDoTask(num, red, taskId);
+            updateStarOpacity(window.smCalm || 0);
+        };
+
+        // ========== SLEEP DIARY ==========
+        let diaryEntries = [];
+
+        function openDiary() {
+            document.getElementById('diaryModal').style.display = 'flex';
+            renderDiaryEntries();
+        }
+        function closeDiary() {
+            document.getElementById('diaryModal').style.display = 'none';
+        }
+
+        function releaseDiaryThought() {
+            const input = document.getElementById('diaryInput');
+            const text = input.value.trim();
+            if (!text) return;
+
+            // Save entry
+            diaryEntries.unshift({ text, time: new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) });
+            input.value = '';
+
+            // Float it away visually
+            spawnFloatingDiaryThought(text);
+
+            // Show release message
+            const msg = document.getElementById('diaryReleasedMsg');
+            msg.style.display = 'block';
+            setTimeout(() => msg.style.display = 'none', 2500);
+
+            renderDiaryEntries();
+        }
+
+        function spawnFloatingDiaryThought(text) {
+            const el = document.createElement('div');
+            el.style.cssText = `
+                position:fixed;
+                left:${20 + Math.random() * 60}%;
+                bottom: 10%;
+                font-family:'Space Mono',monospace;
+                font-size:0.65rem;
+                color:rgba(255,215,0,0.5);
+                pointer-events:none;
+                z-index:99997;
+                opacity:1;
+                letter-spacing:0.05em;
+                text-shadow:0 0 10px rgba(255,215,0,0.3);
+                max-width:200px;
+                text-align:center;
+                transition:transform 3s ease, opacity 3s ease;
+            `;
+            el.textContent = '"' + text.substring(0, 40) + (text.length > 40 ? '…' : '') + '"';
+            document.body.appendChild(el);
+            requestAnimationFrame(() => {
+                el.style.transform = `translateY(-${80 + Math.random()*60}px)`;
+                el.style.opacity = '0';
+            });
+            setTimeout(() => el.remove(), 3200);
+        }
+
+        function renderDiaryEntries() {
+            const container = document.getElementById('diaryEntries');
+            if (!container) return;
+            container.innerHTML = '';
+            diaryEntries.slice(0, 5).forEach(entry => {
+                const el = document.createElement('div');
+                el.style.cssText = 'padding:0.6rem 0.8rem;border:1px solid rgba(255,215,0,0.08);background:rgba(255,215,0,0.02);border-radius:4px;';
+                el.innerHTML = `<div style="font-size:0.48rem;color:rgba(255,215,0,0.3);margin-bottom:0.2rem;letter-spacing:0.2em;">${entry.time}</div><div style="font-size:0.55rem;color:rgba(240,232,232,0.35);line-height:1.6;font-style:italic;">"${entry.text.substring(0,80)}${entry.text.length>80?'…':''}"</div>`;
+                container.appendChild(el);
+            });
+        }
+
+        function clearDiary() {
+            diaryEntries = [];
+            renderDiaryEntries();
+            document.getElementById('diaryInput').value = '';
+        }
+
+        // ========== SLEEP QUALITY CHECKER ==========
+        let sqAnswers = { sq1: null, sq2: null, sq3: null, sq4: null, sq5: null };
+
+        function openQualityChecker() {
+            document.getElementById('qualityModal').style.display = 'flex';
+            resetQuality();
+        }
+        function closeQuality() {
+            document.getElementById('qualityModal').style.display = 'none';
+        }
+
+        function selectOpt(groupId, btn, val) {
+            document.querySelectorAll(`#${groupId} .sq-opt`).forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            sqAnswers[groupId] = val;
+        }
+
+        function calcSleepScore() {
+            const vals = Object.values(sqAnswers);
+            if (vals.some(v => v === null)) {
+                // Highlight unanswered
+                ['sq1','sq2','sq3','sq4','sq5'].forEach(id => {
+                    if (sqAnswers[id] === null) {
+                        document.getElementById(id).style.border = '1px solid rgba(255,26,26,0.4)';
+                        document.getElementById(id).style.borderRadius = '4px';
+                        document.getElementById(id).style.padding = '4px';
+                    }
+                });
+                return;
+            }
+
+            const total = vals.reduce((a, b) => a + b, 0);
+            const maxScore = 15;
+            const pct = Math.round((total / maxScore) * 100);
+
+            const scoreEl = document.getElementById('sqScoreNum');
+            const labelEl = document.getElementById('sqScoreLabel');
+            const barFill = document.getElementById('sqScoreBarFill');
+            const adviceEl = document.getElementById('sqAdvice');
+
+            // Animate score
+            let cur = 0;
+            const interval = setInterval(() => {
+                cur = Math.min(cur + 2, pct);
+                scoreEl.textContent = cur;
+                if (cur >= pct) clearInterval(interval);
+            }, 25);
+
+            // Color & label
+            let label, advice, color;
+            if (pct >= 80) {
+                label = 'Healthy Sleep'; color = '#4ecb8d';
+                advice = 'Your sleep patterns appear healthy. Continue your current routine and protect your sleep hygiene. Small improvements: avoid caffeine after 2PM and keep a consistent wake time even on weekends.';
+            } else if (pct >= 55) {
+                label = 'Mild Disruption'; color = '#ffd700';
+                advice = 'You show mild signs of sleep disruption. Focus on reducing screen time before bed, keeping a fixed sleep schedule, and creating a calming pre-sleep routine. Try the 4-7-8 breathing technique nightly.';
+            } else if (pct >= 30) {
+                label = 'Moderate Insomnia'; color = '#ff6b35';
+                advice = 'Your sleep quality needs attention. Prioritise: consistent bedtime, removing screens from the bedroom, and practising relaxation techniques. Consider speaking with a sleep specialist if this persists beyond 3 weeks.';
+            } else {
+                label = 'Severe Sleep Deprivation'; color = '#ff1a1a';
+                advice = 'Your sleep patterns indicate significant deprivation. This is impacting your health, cognition, and immunity. Please consult a healthcare professional. In the meantime: establish strict sleep hygiene, try CBT-I techniques, and use the tools on this page nightly.';
+            }
+
+            scoreEl.style.color = color;
+            barFill.style.width = pct + '%';
+            barFill.style.background = `linear-gradient(90deg, #ff1a1a, ${color})`;
+            labelEl.textContent = label;
+            labelEl.style.color = color;
+            adviceEl.textContent = advice;
+
+            document.getElementById('qualityResult').style.display = 'block';
+            document.getElementById('qualityResult').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function resetQuality() {
+            sqAnswers = { sq1: null, sq2: null, sq3: null, sq4: null, sq5: null };
+            document.querySelectorAll('.sq-opt').forEach(b => b.classList.remove('selected'));
+            ['sq1','sq2','sq3','sq4','sq5'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) { el.style.border=''; el.style.borderRadius=''; el.style.padding=''; }
+            });
+            const res = document.getElementById('qualityResult');
+            if (res) res.style.display = 'none';
+        }
+
+        // ========== BEDTIME CHECKLIST ==========
+        let clDone = 0;
+        const CL_TOTAL = 8;
+
+        function openChecklist() {
+            document.getElementById('checklistModal').style.display = 'flex';
+        }
+        function closeChecklist() {
+            document.getElementById('checklistModal').style.display = 'none';
+        }
+
+        function toggleCheck(item) {
+            const isDone = item.getAttribute('data-done') === '1';
+            if (!isDone) {
+                item.setAttribute('data-done', '1');
+                item.classList.add('checked');
+                item.querySelector('.cl-box').textContent = '✓';
+                item.querySelector('.cl-box').style.color = '#4ecb8d';
+                clDone++;
+            } else {
+                item.setAttribute('data-done', '0');
+                item.classList.remove('checked');
+                item.querySelector('.cl-box').textContent = '';
+                clDone = Math.max(0, clDone - 1);
+            }
+            updateClProgress();
+        }
+
+        function updateClProgress() {
+            const prog = document.getElementById('clProgress');
+            const bar = document.getElementById('clProgressBar');
+            const pct = (clDone / CL_TOTAL) * 100;
+            if (prog) prog.textContent = `${clDone} / ${CL_TOTAL}`;
+            if (bar) {
+                bar.style.width = pct + '%';
+                bar.style.background = pct < 50
+                    ? 'linear-gradient(90deg,#ff1a1a,#ff6b35)'
+                    : pct < 100
+                    ? 'linear-gradient(90deg,#ff6b35,#ffd700)'
+                    : 'linear-gradient(90deg,#ffd700,#4ecb8d)';
+            }
+            const done = document.getElementById('clDoneMsg');
+            if (done) done.style.display = clDone >= CL_TOTAL ? 'block' : 'none';
+
+            // Stars appear as checklist fills
+            if (clDone > 0) updateStarOpacity((clDone / CL_TOTAL) * 60);
+        }
+
+        function resetChecklist() {
+            clDone = 0;
+            document.querySelectorAll('.cl-item').forEach(item => {
+                item.setAttribute('data-done', '0');
+                item.classList.remove('checked');
+                const box = item.querySelector('.cl-box');
+                if (box) { box.textContent = ''; box.style.color = ''; }
+            });
+            updateClProgress();
+        }
+    </script>
+</body>
+</html>
